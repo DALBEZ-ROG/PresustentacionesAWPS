@@ -1,0 +1,29 @@
+# Maven
+target/
+backend-output/
+
+# IntelliJ
+.idea/
+*.iml
+
+# Sensible
+src/main/resources/application.properties
+
+# Logs
+*.log
+
+# Uploads
+uploads/
+```
+
+---
+
+### Paso 2 — Inicializa Git
+**VCS → Enable Version Control Integration → Git → OK**
+
+---
+
+### Paso 3 — Conecta con GitHub
+**Git → Manage Remotes → "+" →** pega la URL de tu repo:
+```
+https://github.com/reyshadow0/Backendpresus.git
