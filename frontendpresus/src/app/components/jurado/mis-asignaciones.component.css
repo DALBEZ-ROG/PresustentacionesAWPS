@@ -36,20 +36,21 @@
 .badge-creada { background:#f3f4f6; color:#6b7280; }
 .badge-default { background:#f3f4f6; color:#6b7280; }
 
-.card-actions { display:flex; gap:8px; }
-.btn-card { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:7px; font-size:0.8rem; font-weight:500; cursor:pointer; text-decoration:none; border:none; }
-.btn-ver { background:#eff6ff; color:#1e40af; }
-.btn-ver:hover { background:#dbeafe; }
-.btn-firmar { background:#1e40af; color:#fff; }
-.btn-firmar:hover { background:#1e3a8a; }
+.card-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid #f1f5f9; }
+.btn-card { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; border-radius:10px; font-size:0.82rem; font-weight:600; cursor:pointer; text-decoration:none; border:none; transition:all 0.2s ease; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+.btn-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+.btn-card.btn-ver { background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; }
+.btn-card.btn-ver:hover { background:#c2410c; color:white; border-color:#c2410c; }
+.btn-card.btn-firmar { background:#1a5c2e; color:#fff; }
+.btn-card.btn-firmar:hover { background:#145024; }
 
 .btn-evaluar {
-    background: linear-gradient(135deg, #003865, #0056a3) !important;
+    background: #1e40af !important;
     color: white !important;
     border-color: transparent !important;
     font-weight: 700;
 }
-.btn-evaluar:hover { opacity: 0.88; }
+.btn-evaluar:hover { background:#1e3a8a !important; }
 
 /* Botón Evaluar deshabilitado tras evaluación final del coordinador */
 .btn-evaluar.btn-disabled {
@@ -378,9 +379,9 @@ body.dark-mode .card-top         { border-color: #21262d !important; }
 body.dark-mode .titulo-tema      { color: #e6edf3 !important; }
 body.dark-mode .estudiante-nombre { color: #8b949e !important; }
 body.dark-mode .card-actions     { border-color: #21262d !important; }
-body.dark-mode .btn-card.btn-ver { background: #21262d !important; color: #8b949e !important; border-color: #30363d !important; }
+body.dark-mode .btn-card.btn-ver { background: #2a1e04 !important; color: #f0b429 !important; border-color: #4a3500 !important; }
 body.dark-mode .btn-card.btn-evaluar { background: #0d1f3a !important; color: #79c0ff !important; }
-body.dark-mode .btn-card.btn-firmar  { background: #0f2e1a !important; color: #3fb950 !important; }
+body.dark-mode .btn-card.btn-firmar  { background: #238636 !important; color: white !important; }
 body.dark-mode .empty-state      { color: #484f58 !important; }
 body.dark-mode .rol-badge        { background: #21262d !important; color: #8b949e !important; }
 body.dark-mode .estado-badge     { }

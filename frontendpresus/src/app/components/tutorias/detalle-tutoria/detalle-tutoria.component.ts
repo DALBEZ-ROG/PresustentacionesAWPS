@@ -149,6 +149,10 @@ export class DetalleTutoriaComponent implements OnInit {
     return m.remitenteId === this.userId;
   }
 
+  tieneAlgunMensaje(): boolean {
+    return this.fases.some(f => f.mensajes && f.mensajes.length > 0);
+  }
+
   formatDate(iso: string): string {
     if (!iso) return '';
     const d = new Date(iso);
@@ -248,21 +252,44 @@ export class DetalleTutoriaComponent implements OnInit {
 
   async confirmarAprobar(): Promise<void> {
     if (!this.faseSeleccionada) return;
-    const result = await Swal.fire({
-      title: `¿Aprobar Fase ${this.faseSeleccionada.numeroFase}?`,
-      text: 'Esta acción no se puede deshacer.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#22c55e',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Sí, aprobar',
-      cancelButtonText: 'Cancelar'
-    });
-    if (!result.isConfirmed) return;
+
+    // Si el textarea tiene texto, se enviará como comentario de cierre al aprobar
+    const comentario = this.nuevoMensaje.trim();
+
+    // Si no hay comentario, preguntar si quiere agregar uno
+    if (!comentario) {
+      const result = await Swal.fire({
+        title: `¿Aprobar Fase ${this.faseSeleccionada.numeroFase} sin comentario?`,
+        html: 'No has escrito ningún mensaje de retroalimentación para el estudiante.<br><br><small>Se recomienda indicar qué estuvo bien o qué debe tener en cuenta para la siguiente fase.</small>',
+        icon: 'question',
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonColor: '#22c55e',
+        denyButtonColor: '#1e40af',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Aprobar sin comentario',
+        denyButtonText: 'Quiero escribir primero',
+        cancelButtonText: 'Cancelar'
+      });
+      if (result.isDenied || result.isDismissed) return; // Vuelve a escribir
+    } else {
+      // Tiene comentario, confirmar aprobación
+      const result = await Swal.fire({
+        title: `¿Aprobar Fase ${this.faseSeleccionada.numeroFase}?`,
+        text: 'Se enviará tu comentario y se aprobará la fase. Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#22c55e',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, aprobar',
+        cancelButtonText: 'Cancelar'
+      });
+      if (!result.isConfirmed) return;
+    }
 
     this.aprobando = true;
     const faseId = this.faseSeleccionada.id;
-    this.tutoriaService.aprobarFase(faseId, this.userId, this.nuevoMensaje).subscribe({
+    this.tutoriaService.aprobarFase(faseId, this.userId, comentario).subscribe({
       next: () => {
         this.aprobando = false;
         this.nuevoMensaje = '';

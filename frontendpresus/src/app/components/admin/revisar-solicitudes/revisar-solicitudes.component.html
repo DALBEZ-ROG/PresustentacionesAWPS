@@ -76,7 +76,6 @@
                 <td><span class="badge" [ngClass]="getBadge(s.estado)">{{ s.estado }}</span></td>
                 <td>
                     <div class="obs-cell">
-                        <span class="obs-empty" *ngIf="!s.observaciones">—</span>
                         <ng-container *ngIf="s.observaciones">
                             <span class="obs-text">{{ s.observaciones | slice:0:30 }}{{ s.observaciones.length > 30 ? '... ' : ' ' }}<button class="btn-ver-mas" (click)="verObservaciones(s.tituloTema, s.observaciones)">Ver más</button></span>
                         </ng-container>
@@ -85,20 +84,26 @@
                 <td>
                     <div class="acciones-cell">
 
-                        <!-- ENVIADA → Paso 1: Aprobar / Rechazar / Suspender -->
-                        <button class="btn-accion btn-aprobar"  *ngIf="s.estado==='ENVIADA'" (click)="aprobar(s.id)">
-                            <i class="bi bi-check-circle-fill"></i> Aprobar
-                        </button>
-                        <button class="btn-accion btn-rechazar" *ngIf="s.estado==='ENVIADA'" (click)="abrirModalRechazo(s.id)">
-                            <i class="bi bi-x-circle-fill"></i> Rechazar
-                        </button>
-                        <button class="btn-accion btn-ver-pdf" *ngIf="s.estado==='ENVIADA'"
-                                [routerLink]="['/dashboard/docente/anteproyecto', s.id]">
-                            <i class="bi bi-file-earmark-pdf"></i> Ver PDF
-                        </button>
+                        <!-- ENVIADA → Ver PDF primero, luego Aprobar/Rechazar, Suspender al final -->
+                        <ng-container *ngIf="s.estado==='ENVIADA'">
+                            <button class="btn-accion btn-ver-pdf"
+                                    [routerLink]="['/dashboard/docente/anteproyecto', s.id]">
+                                <i class="bi bi-file-earmark-pdf"></i> Ver PDF
+                            </button>
+                            <button class="btn-accion btn-aprobar" (click)="aprobar(s.id)">
+                                <i class="bi bi-check-circle-fill"></i> Aprobar
+                            </button>
+                            <button class="btn-accion btn-rechazar" (click)="abrirModalRechazo(s.id)">
+                                <i class="bi bi-x-circle-fill"></i> Rechazar
+                            </button>
+                        </ng-container>
 
-                        <!-- APROBADA → Tribunal, Fecha, Evaluar, PDF, Suspender -->
+                        <!-- APROBADA → PDF, Tribunal, Fecha, Evaluar -->
                         <ng-container *ngIf="s.estado==='APROBADA'">
+                            <button class="btn-accion btn-ver-pdf"
+                                    [routerLink]="['/dashboard/docente/anteproyecto', s.id]">
+                                <i class="bi bi-file-earmark-pdf"></i> PDF
+                            </button>
                             <button class="btn-accion btn-tribunal"
                                     [routerLink]="['/dashboard/admin/asignar-jurados', s.id]"
                                     title="Asignar Presidente, Vocales y Tutor">
@@ -112,14 +117,14 @@
                                     [routerLink]="['/dashboard/admin/evaluar', s.id]">
                                 <i class="bi bi-star-fill"></i> Evaluar
                             </button>
+                        </ng-container>
+
+                        <!-- TUTORIA → PDF, Tribunal, Fecha, Evaluar -->
+                        <ng-container *ngIf="s.estado==='TUTORIA'">
                             <button class="btn-accion btn-ver-pdf"
                                     [routerLink]="['/dashboard/docente/anteproyecto', s.id]">
                                 <i class="bi bi-file-earmark-pdf"></i> PDF
                             </button>
-                        </ng-container>
-
-                        <!-- TUTORIA → Tribunal (cambiar), Fecha, Evaluar, PDF, Suspender -->
-                        <ng-container *ngIf="s.estado==='TUTORIA'">
                             <button class="btn-accion btn-tribunal"
                                     [routerLink]="['/dashboard/admin/asignar-jurados', s.id]"
                                     title="Ver/Modificar tribunal">
@@ -133,14 +138,14 @@
                                     [routerLink]="['/dashboard/admin/evaluar', s.id]">
                                 <i class="bi bi-star-fill"></i> Evaluar
                             </button>
+                        </ng-container>
+
+                        <!-- EVALUACION → PDF, Fecha, Evaluar -->
+                        <ng-container *ngIf="s.estado==='EVALUACION'">
                             <button class="btn-accion btn-ver-pdf"
                                     [routerLink]="['/dashboard/docente/anteproyecto', s.id]">
                                 <i class="bi bi-file-earmark-pdf"></i> PDF
                             </button>
-                        </ng-container>
-
-                        <!-- EVALUACION → Fecha, Evaluar, PDF, Suspender -->
-                        <ng-container *ngIf="s.estado==='EVALUACION'">
                             <button class="btn-accion btn-programar"
                                     [routerLink]="['/dashboard/admin/cronograma', s.id]">
                                 <i class="bi bi-calendar-plus"></i> Fecha
@@ -149,32 +154,28 @@
                                     [routerLink]="['/dashboard/admin/evaluar', s.id]">
                                 <i class="bi bi-star-fill"></i> Evaluar
                             </button>
+                        </ng-container>
+
+                        <!-- CALIFICADA → PDF, Fecha -->
+                        <ng-container *ngIf="s.estado==='CALIFICADA'">
                             <button class="btn-accion btn-ver-pdf"
                                     [routerLink]="['/dashboard/docente/anteproyecto', s.id]">
                                 <i class="bi bi-file-earmark-pdf"></i> PDF
                             </button>
-                        </ng-container>
-
-                        <!-- CALIFICADA → Fecha, PDF, Suspender -->
-                        <ng-container *ngIf="s.estado==='CALIFICADA'">
                             <button class="btn-accion btn-programar"
                                     [routerLink]="['/dashboard/admin/cronograma', s.id]">
                                 <i class="bi bi-calendar-plus"></i> Fecha
                             </button>
-                            <button class="btn-accion btn-ver-pdf"
-                                    [routerLink]="['/dashboard/docente/anteproyecto', s.id]">
-                                <i class="bi bi-file-earmark-pdf"></i> PDF
-                            </button>
                         </ng-container>
 
-                        <!-- Suspender: disponible para ENVIADA, APROBADA, TUTORIA, EVALUACION, CALIFICADA -->
+                        <!-- Suspender: siempre al final, disponible para estados activos -->
                         <button class="btn-accion btn-suspender" 
                                 *ngIf="s.estado==='ENVIADA' || s.estado==='APROBADA' || s.estado==='TUTORIA' || s.estado==='EVALUACION' || s.estado==='CALIFICADA'" 
                                 (click)="abrirModalSuspension(s.id)">
                             <i class="bi bi-slash-circle-fill"></i> Suspender
                         </button>
 
-                        <span class="sin-accion" *ngIf="s.estado==='RECHAZADA' || s.estado==='CREADA' || s.estado==='SUSPENDIDA' || s.estado==='COMPLETADA'">—</span>
+                        <!-- Estados finales: sin acciones -->
                     </div>
                 </td>
             </tr>

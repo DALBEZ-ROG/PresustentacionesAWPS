@@ -295,16 +295,40 @@
 
 /* ── Chat ───────────────────────────────────────────────────────────── */
 .chat-container {
-  height: 320px;
+  height: 420px;
   overflow-y: auto;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   background: #f8fafc;
   scroll-behavior: smooth;
+}
+
+/* Separador de fase en el chat */
+.fase-separator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 6px;
+}
+
+.fase-separator-line {
+  flex: 1;
+  height: 1px;
+  background: #cbd5e1;
+}
+
+.fase-separator-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 4px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
 }
 
 .chat-vacio {
@@ -394,16 +418,17 @@
   background: #1a5c2e;
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 12px rgba(26, 92, 46, 0.25);
 }
 
-.btn-crear-fase:hover:not(:disabled) { background: #14472a; }
-.btn-crear-fase:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-crear-fase:hover:not(:disabled) { background: #14472a; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(26, 92, 46, 0.35); }
+.btn-crear-fase:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .acciones-row {
   display: flex;
@@ -415,47 +440,52 @@
   background: #1a5c2e;
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 9px 18px;
+  border-radius: 10px;
+  padding: 10px 20px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(26, 92, 46, 0.2);
 }
 
-.btn-enviar:hover:not(:disabled) { background: #14472a; }
-.btn-enviar:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-enviar:hover:not(:disabled) { background: #14472a; transform: translateY(-1px); }
+.btn-enviar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .btn-aprobar {
   background: #22c55e;
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 9px 20px;
-  font-size: 0.875rem;
+  border-radius: 10px;
+  padding: 10px 22px;
+  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 10px rgba(34, 197, 94, 0.3);
 }
 
-.btn-aprobar:hover:not(:disabled) { background: #16a34a; }
-.btn-aprobar:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-aprobar:hover:not(:disabled) { background: #16a34a; transform: translateY(-1px); }
+.btn-aprobar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .btn-ver-pdf {
-  background: #1d4ed8;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 5px 12px;
-  font-size: 0.8rem;
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   margin-left: 10px;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-.btn-ver-pdf:hover { background: #1e40af; }
+.btn-ver-pdf:hover { background: #c2410c; color: white; border-color: #c2410c; transform: translateY(-1px); }
 
 /* ── Avisos ─────────────────────────────────────────────────────────── */
 .aviso-pdf {
@@ -663,17 +693,23 @@
   background: #1a5c2e;
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 11px 0;
+  border-radius: 12px;
+  padding: 13px 0;
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
   width: 100%;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 10px rgba(26, 92, 46, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
 }
 
-.btn-subir-pdf:hover:not(:disabled) { background: #14472a; }
-.btn-subir-pdf:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-subir-pdf:hover:not(:disabled) { background: #14472a; transform: translateY(-1px); box-shadow: 0 5px 15px rgba(26, 92, 46, 0.3); }
+.btn-subir-pdf:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 /* ── Zona de mensaje ────────────────────────────────────────────────── */
 .zona-mensaje {
@@ -726,6 +762,8 @@ body.dark-mode .rev-count { color: #e6edf3; }
 /* Chat */
 body.dark-mode .chat-container { background: #0d1117; border-color: #30363d; }
 body.dark-mode .chat-vacio  { color: #8b949e; }
+body.dark-mode .fase-separator-line { background: #30363d; }
+body.dark-mode .fase-separator-label { background: #21262d; color: #8b949e; }
 body.dark-mode .msg-propio .burbuja { background: #1a3a28; }
 body.dark-mode .msg-otro   .burbuja { background: #1e3a5f; }
 body.dark-mode .burbuja-nombre { color: #c9d1d9; }

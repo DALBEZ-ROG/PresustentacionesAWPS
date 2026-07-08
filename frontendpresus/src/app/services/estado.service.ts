@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, timer, switchMap, distinctUntilChanged, shareReplay } from 'rxjs';
+import { Observable, timer, switchMap, distinctUntilChanged, shareReplay, EMPTY } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class EstadoService {
@@ -15,11 +15,15 @@ export class EstadoService {
 
   /**
    * RF-03: Observable que hace polling cada `intervalMs` ms.
-   * El componente suscribe y recibe actualizaciones automáticas.
+   * Se detiene automáticamente si no hay token (sesión cerrada).
    */
   pollingEstado(id: number, intervalMs = 15000): Observable<any> {
     return timer(0, intervalMs).pipe(
-      switchMap(() => this.estadoSolicitud(id)),
+      switchMap(() => {
+        const token = localStorage.getItem('presus_token');
+        if (!token) return EMPTY;
+        return this.estadoSolicitud(id);
+      }),
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
       shareReplay(1)
     );

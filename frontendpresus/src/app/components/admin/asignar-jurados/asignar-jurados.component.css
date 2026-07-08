@@ -29,8 +29,6 @@
 .jurado-nombre { display: block; font-weight: 600; font-size: 0.9rem; color: #1a2b3c; }
 .jurado-rol { display: block; font-size: 0.78rem; color: #0056a3; font-weight: 600; }
 .jurado-especialidad { display: block; font-size: 0.75rem; color: #888; }
-.btn-remove { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.1rem; padding: 4px; border-radius: 6px; }
-.btn-remove:hover { background: #fde8e8; }
 
 /* Tutor section */
 .tutor-section { margin-top: 16px; }
@@ -40,9 +38,6 @@
 /* Auto section */
 .auto-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e8eef4; }
 .auto-hint { font-size: 0.82rem; color: #666; margin-bottom: 10px; }
-.btn-auto { width: 100%; padding: 10px; background: linear-gradient(135deg, #003865, #0056a3); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: opacity 0.2s; }
-.btn-auto:hover:not(:disabled) { opacity: 0.9; }
-.btn-auto:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Forms */
 .form-asignar { display: flex; flex-direction: column; gap: 12px; }
@@ -50,12 +45,6 @@
 .form-group label { font-size: 0.83rem; font-weight: 600; color: #444; }
 .form-input, .form-select { padding: 9px 12px; border: 1.5px solid #d0d8e4; border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
 .form-input:focus, .form-select:focus { border-color: #003865; }
-.btn-primary { padding: 10px; background: #003865; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
-.btn-primary:hover:not(:disabled) { background: #002a4e; }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-secondary { padding: 10px; background: #198754; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
-.btn-secondary:hover:not(:disabled) { background: #146c43; }
-.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
 .text-warning { color: #856404; font-size: 0.8rem; }
 
 /* Sugerencias */
@@ -68,11 +57,7 @@
 .s-info { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
 .s-carga { font-size: 0.75rem; color: #666; }
 .s-esp { font-size: 0.72rem; color: #0056a3; }
-.s-actions { display: flex; gap: 4px; }
-.btn-sug { padding: 5px 8px; background: #003865; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
-.btn-sug:hover { background: #002a4e; }
-.btn-sug-tutor { background: #198754; }
-.btn-sug-tutor:hover { background: #146c43; }
+.s-actions { display: flex; gap: 6px; }
 .empty-panel { text-align: center; padding: 30px; color: #aaa; }
 .empty-panel i { font-size: 2rem; display: block; margin-bottom: 8px; }
 

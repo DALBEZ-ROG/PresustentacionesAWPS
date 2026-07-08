@@ -182,33 +182,46 @@
           <span class="rev-count">{{ fasesAprobadas }} / 3</span>
         </div>
 
-        <!-- ── Chat de mensajes ──────────────────────────────────────── -->
+        <!-- ── Chat de mensajes — HISTORIAL COMPLETO de todas las fases ── -->
         <div class="chat-container" #chatContainer>
-          <div *ngIf="faseSeleccionada.mensajes.length === 0" class="chat-vacio">
+          <!-- Mostrar mensajes de TODAS las fases para tener historial completo -->
+          <ng-container *ngFor="let fase of fases">
+            <!-- Separador de fase -->
+            <div class="fase-separator" *ngIf="fase.mensajes.length > 0">
+              <span class="fase-separator-line"></span>
+              <span class="fase-separator-label">
+                <i class="bi bi-bookmark-fill me-1"></i>Fase {{ fase.numeroFase }}
+                <small *ngIf="fase.estado === 'APROBADA'">✅</small>
+              </span>
+              <span class="fase-separator-line"></span>
+            </div>
+
+            <div
+              *ngFor="let m of fase.mensajes"
+              class="mensaje-wrap"
+              [class.msg-propio]="esMensajePropio(m) && m.tipo !== 'APROBACION'"
+              [class.msg-otro]="!esMensajePropio(m) && m.tipo !== 'APROBACION'"
+              [class.msg-aprobacion]="m.tipo === 'APROBACION'"
+            >
+              <!-- Burbuja de aprobación (centrada) -->
+              <div class="burbuja aprobacion-burbuja" *ngIf="m.tipo === 'APROBACION'">
+                <strong>✅ {{ m.nombreRemitente }}</strong>
+                <p>{{ m.contenido }}</p>
+                <small>{{ formatDateTime(m.fechaEnvio) }}</small>
+              </div>
+
+              <!-- Burbuja normal -->
+              <div class="burbuja" *ngIf="m.tipo !== 'APROBACION'">
+                <strong class="burbuja-nombre">{{ m.nombreRemitente }}</strong>
+                <p class="burbuja-texto">{{ m.contenido }}</p>
+                <small class="burbuja-hora">{{ formatDateTime(m.fechaEnvio) }}</small>
+              </div>
+            </div>
+          </ng-container>
+
+          <div *ngIf="fases.length === 0 || !tieneAlgunMensaje()" class="chat-vacio">
             <i class="bi bi-chat-dots"></i>
-            <p>No hay mensajes en esta fase aún.</p>
-          </div>
-
-          <div
-            *ngFor="let m of faseSeleccionada.mensajes"
-            class="mensaje-wrap"
-            [class.msg-propio]="esMensajePropio(m) && m.tipo !== 'APROBACION'"
-            [class.msg-otro]="!esMensajePropio(m) && m.tipo !== 'APROBACION'"
-            [class.msg-aprobacion]="m.tipo === 'APROBACION'"
-          >
-            <!-- Burbuja de aprobación (centrada) -->
-            <div class="burbuja aprobacion-burbuja" *ngIf="m.tipo === 'APROBACION'">
-              <strong>✅ {{ m.nombreRemitente }}</strong>
-              <p>{{ m.contenido }}</p>
-              <small>{{ formatDateTime(m.fechaEnvio) }}</small>
-            </div>
-
-            <!-- Burbuja normal -->
-            <div class="burbuja" *ngIf="m.tipo !== 'APROBACION'">
-              <strong class="burbuja-nombre">{{ m.nombreRemitente }}</strong>
-              <p class="burbuja-texto">{{ m.contenido }}</p>
-              <small class="burbuja-hora">{{ formatDateTime(m.fechaEnvio) }}</small>
-            </div>
+            <p>No hay mensajes en esta tutoría aún.</p>
           </div>
         </div>
 
@@ -258,9 +271,9 @@
           <ng-container *ngIf="rol === 'DOCENTE'">
             <div class="aviso-pdf">
               <i class="bi bi-file-earmark-pdf-fill me-2"></i>
-              📄 El estudiante ha subido correcciones.
+              El estudiante ha subido correcciones.
               <button class="btn-ver-pdf" (click)="verPdf(faseSeleccionada.id)">
-                <i class="bi bi-eye me-1"></i>👁 Ver PDF
+                <i class="bi bi-file-earmark-pdf me-1"></i> Ver PDF
               </button>
             </div>
 
@@ -356,16 +369,6 @@
           <!-- Vista ESTUDIANTE -->
           <ng-container *ngIf="rol === 'ESTUDIANTE'">
 
-            <!-- Última observación del tutor -->
-            <div class="recuadro-obs" *ngIf="ultimaObservacion">
-              <div class="obs-cabecera">
-                <i class="bi bi-chat-quote-fill me-1"></i>
-                <strong>Observación del tutor:</strong>
-              </div>
-              <p class="obs-texto">{{ ultimaObservacion.contenido }}</p>
-              <small class="obs-fecha">{{ formatDateTime(ultimaObservacion.fechaEnvio) }}</small>
-            </div>
-
             <!-- Zona de subida drag & drop -->
             <div
               class="drop-zone"
@@ -413,7 +416,7 @@
               [disabled]="subiendoPdf || !archivoSeleccionado || solicitudSuspendida"
             >
               <span *ngIf="!subiendoPdf">
-                <i class="bi bi-upload me-1"></i>📤 Enviar corrección
+                <i class="bi bi-cloud-arrow-up me-1"></i> Enviar corrección
               </span>
               <span *ngIf="subiendoPdf">
                 <i class="bi bi-hourglass-split me-1"></i>Subiendo...

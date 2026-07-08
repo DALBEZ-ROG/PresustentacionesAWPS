@@ -17,19 +17,19 @@
   <div class="banner-tutoria banner-tutoria-error"
        *ngIf="tutoriaCompletada === false && !tutoriaTieneAsignacion">
     <i class="bi bi-exclamation-triangle-fill me-2"></i>
-    ⚠ No se puede asignar tribunal. El estudiante no tiene tutor asignado aún.
+    No se puede asignar tribunal. El estudiante no tiene tutor asignado aún.
   </div>
   <!-- Caso 2: tutoría existe pero no está completada -->
   <div class="banner-tutoria banner-tutoria-error"
        *ngIf="tutoriaCompletada === false && tutoriaTieneAsignacion">
     <i class="bi bi-exclamation-triangle-fill me-2"></i>
-    ⚠ No se puede asignar tribunal. El estudiante debe completar las 3 revisiones de tutoría primero
+    No se puede asignar tribunal. El estudiante debe completar las 3 revisiones de tutoría primero
     ({{ tutoriaFasesAprobadas }}/3 completadas).
   </div>
   <!-- Caso 3: tutoría completada -->
   <div class="banner-tutoria banner-tutoria-ok" *ngIf="tutoriaCompletada === true">
     <i class="bi bi-check-circle-fill me-2"></i>
-    ✓ Tutoría completada. Puede proceder con la asignación del tribunal.
+    Tutoría completada. Puede proceder con la asignación del tribunal.
   </div>
 
   <!-- ── Estado del tribunal ─────────────────────────────────────────── -->

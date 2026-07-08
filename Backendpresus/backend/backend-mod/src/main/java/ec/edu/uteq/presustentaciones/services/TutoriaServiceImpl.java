@@ -39,6 +39,7 @@ public class TutoriaServiceImpl implements TutoriaService {
     private final TutoriaMensajeRepository tutoriaMensajeRepository;
     private final UsuarioRepository usuarioRepository;
     private final AnteproyectoRepository anteproyectoRepository;
+    private final NotificacionService notificacionService;
 
     @Value("${app.upload.dir.tutorias:uploads/tutorias}")
     private String uploadDir;
@@ -50,12 +51,14 @@ public class TutoriaServiceImpl implements TutoriaService {
                               TutoriaFaseRepository tutoriaFaseRepository,
                               TutoriaMensajeRepository tutoriaMensajeRepository,
                               UsuarioRepository usuarioRepository,
-                              AnteproyectoRepository anteproyectoRepository) {
+                              AnteproyectoRepository anteproyectoRepository,
+                              NotificacionService notificacionService) {
         this.tutorRepository = tutorRepository;
         this.tutoriaFaseRepository = tutoriaFaseRepository;
         this.tutoriaMensajeRepository = tutoriaMensajeRepository;
         this.usuarioRepository = usuarioRepository;
         this.anteproyectoRepository = anteproyectoRepository;
+        this.notificacionService = notificacionService;
     }
 
     // ── Resumen ───────────────────────────────────────────────────────────────
@@ -193,6 +196,18 @@ public class TutoriaServiceImpl implements TutoriaService {
                 .build();
         tutoriaMensajeRepository.save(mensajeAuto);
 
+        // Notificar al tutor que el estudiante subió el PDF
+        try {
+            Long tutorUsuarioId = fase.getTutor().getDocente().getUsuario().getId();
+            String nombreEstudiante = estudiante.getNombre() + " " + estudiante.getApellido();
+            String tituloTema = fase.getTutor().getSolicitud().getTituloTema();
+            notificacionService.crearNotificacion(tutorUsuarioId,
+                    String.format("📄 %s ha subido correcciones en la Fase %d de la tutoría \"%s\". Revisa el PDF.",
+                            nombreEstudiante, fase.getNumeroFase(), tituloTema));
+        } catch (Exception e) {
+            log.warn("No se pudo notificar al tutor sobre PDF subido: {}", e.getMessage());
+        }
+
         return mapFaseConMensajes(fase);
     }
 
@@ -292,7 +307,30 @@ public class TutoriaServiceImpl implements TutoriaService {
                 .leido(false)
                 .build();
 
-        return mapMensaje(tutoriaMensajeRepository.save(mensaje));
+        TutoriaMensajeDTO dto = mapMensaje(tutoriaMensajeRepository.save(mensaje));
+
+        // Notificar al destinatario
+        try {
+            Tutor tutor = fase.getTutor();
+            Long estudianteUsuarioId = tutor.getSolicitud().getEstudiante().getUsuario().getId();
+            Long tutorUsuarioId = tutor.getDocente().getUsuario().getId();
+            String nombreRemitente = remitente.getNombre() + " " + remitente.getApellido();
+            String tituloTema = tutor.getSolicitud().getTituloTema();
+
+            // Si el remitente es el tutor → notificar al estudiante
+            // Si el remitente es el estudiante → notificar al tutor
+            Long destinatarioId = remitenteId.equals(tutorUsuarioId) ? estudianteUsuarioId : tutorUsuarioId;
+
+            String msg = String.format(
+                "💬 Nuevo mensaje de %s en la tutoría de \"%s\" (Fase %d).",
+                nombreRemitente, tituloTema, fase.getNumeroFase());
+
+            notificacionService.crearNotificacion(destinatarioId, msg);
+        } catch (Exception e) {
+            log.warn("No se pudo notificar mensaje de tutoría: {}", e.getMessage());
+        }
+
+        return dto;
     }
 
     @Override

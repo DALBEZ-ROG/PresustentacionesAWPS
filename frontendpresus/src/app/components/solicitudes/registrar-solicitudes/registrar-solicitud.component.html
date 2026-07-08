@@ -2,12 +2,18 @@
   <div class="card shadow-dubai">
     <h2 class="card-title-main">Registro de Solicitud de Tema</h2>
 
-    <div class="info-banner">
+    <div class="info-banner" *ngIf="!bloqueado">
       <i class="bi bi-info-circle-fill fs-4"></i>
       <span>Formulario de registro oficial para el proceso de titulación. Ingrese los datos requeridos por la coordinación.</span>
     </div>
 
-    <form [formGroup]="solicitudForm" (ngSubmit)="enviarFormulario()">
+    <!-- Mensaje de bloqueo -->
+    <div class="info-banner" style="background: #f8d7da; border-color: #f5c6cb; color: #721c24;" *ngIf="bloqueado">
+      <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+      <span><strong>No puedes registrar una nueva solicitud.</strong> Ya tienes una solicitud de pre-sustentación activa. Solo podrías crear otra si tu solicitud actual es suspendida o rechazada.</span>
+    </div>
+
+    <form [formGroup]="solicitudForm" (ngSubmit)="enviarFormulario()" *ngIf="!bloqueado">
       <div class="form-stack">
 
         <div class="form-section-card">
@@ -47,5 +53,12 @@
         </button>
       </div>
     </form>
+
+    <!-- Botón volver cuando está bloqueado -->
+    <div class="form-footer" *ngIf="bloqueado">
+      <button type="button" class="btn btn-cancel" routerLink="/dashboard/solicitudes/mis-tramites">
+        <i class="bi bi-arrow-left me-2"></i>Ir a Mis Trámites
+      </button>
+    </div>
   </div>
 </div>

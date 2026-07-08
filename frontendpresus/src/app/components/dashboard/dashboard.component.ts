@@ -3,6 +3,8 @@ import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { NotificacionService } from '../../services/notificacion.service';
+import { SolicitudService } from '../../services/solicitud.service';
+import { NotificationService } from '../../services/notification.service';
 import { filter, Subscription } from 'rxjs';
 
 @Component({
@@ -75,9 +77,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     constructor(
         public router: Router,
         private authService: AuthService,
-        private notiService: NotificacionService
+        private notiService: NotificacionService,
+        private solicitudService: SolicitudService,
+        private notification: NotificationService
     ) {
-        // Set immediately so esInicio() works before ngOnInit
         this.urlActual = this.router.url;
     }
 
@@ -98,7 +101,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             .subscribe((e: any) => { this.urlActual = e.urlAfterRedirects; });
 
         this.cargarBadgeNoti();
-        // Suscribirse al badge reactivo — se actualiza automáticamente cuando se marcan leídas
+        // Suscribirse al badge reactivo
         this.badgeSub = this.notiService.badge$.subscribe(n => this.notiBadge = n);
     }
 
@@ -114,7 +117,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     get modulosPermitidos() {
         if (this.userRole === 'ESTUDIANTE') return this.modulosEstudiante;
-        if (this.userRole === 'DOCENTE')    return this.modulosDocente;
+        if (this.userRole === 'DOCENTE') return this.modulosDocente;
         return this.modulosAdmin;
     }
 
@@ -175,6 +178,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     @HostListener('document:click')
     onDocumentClick(): void { this.isMenuOpen = false; }
+
+    navegarModulo(item: any, event: Event): void {
+        // Si es "Nueva Solicitud", verificar si puede crear
+        if (item.route === '/dashboard/solicitudes/registrar' && this.userRole === 'ESTUDIANTE') {
+            this.solicitudService.listarMisSolicitudes().subscribe({
+                next: (sols) => {
+                    const estadosPermiten = ['SUSPENDIDA', 'RECHAZADA'];
+                    const puedeCrear = sols.length === 0 || sols.every((s: any) => estadosPermiten.includes(s.estado));
+                    if (!puedeCrear) {
+                        this.notification.error(
+                            'Ya tienes una solicitud de pre-sustentación registrada. No puedes crear otra.',
+                            'Solicitud existente'
+                        );
+                    } else {
+                        this.router.navigate([item.route]);
+                    }
+                },
+                error: () => this.router.navigate([item.route])
+            });
+        } else {
+            this.router.navigate([item.route]);
+        }
+    }
 
     logout(): void { this.authService.logout(); }
 }

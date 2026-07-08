@@ -117,6 +117,10 @@ public class JuradoServiceImpl implements JuradoService {
         Tutor tutor = tutorRepository.findBySolicitudId(solicitudId)
                 .orElse(Tutor.builder().solicitud(solicitud).build());
 
+        // Si ya había un tutor diferente, notificarle que fue reemplazado
+        Docente tutorAnterior = tutor.getDocente();
+        boolean esReemplazo = tutorAnterior != null && !tutorAnterior.getId().equals(docenteId);
+
         tutor.setDocente(docente);
         tutor.setEstado("ACTIVO");
 
@@ -127,6 +131,19 @@ public class JuradoServiceImpl implements JuradoService {
         // Cambiar estado a TUTORIA
         solicitud.setEstado(EstadoSolicitud.TUTORIA);
         solicitudRepository.save(solicitud);
+
+        // Notificar al tutor anterior que fue reemplazado
+        if (esReemplazo) {
+            try {
+                notificacionService.crearNotificacion(tutorAnterior.getUsuario().getId(),
+                        String.format("🔄 Ya no eres tutor del anteproyecto \"%s\" del estudiante %s %s. Se ha asignado un nuevo tutor.",
+                                solicitud.getTituloTema(),
+                                solicitud.getEstudiante().getUsuario().getNombre(),
+                                solicitud.getEstudiante().getUsuario().getApellido()));
+            } catch (Exception e) {
+                log.warn("No se pudo notificar al tutor anterior: {}", e.getMessage());
+            }
+        }
 
         // Notificar al docente asignado como tutor
         notificarDocenteTutor(docente, solicitud);

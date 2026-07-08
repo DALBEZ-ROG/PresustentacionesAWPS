@@ -90,7 +90,7 @@
             </div>
 
             <div class="sga-grid">
-                <div class="sga-card" *ngFor="let item of modulosPermitidos" [routerLink]="item.route">
+                <div class="sga-card" *ngFor="let item of modulosPermitidos" (click)="navegarModulo(item, $event)">
                     <div class="card-icon-wrap">
                         <i class="bi {{ item.icon }}"></i>
                     </div>

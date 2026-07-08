@@ -109,6 +109,15 @@ export class ListarSolicitudesComponent implements OnInit, OnDestroy {
     esEstudiante(): boolean { return this.authService.getRole() === 'ESTUDIANTE'; }
     esAdmin(): boolean { return ['ADMIN', 'DOCENTE'].includes(this.authService.getRole()); }
 
+    /** El estudiante solo puede crear nueva solicitud si no tiene ninguna (o si la única fue suspendida/rechazada) */
+    puedeCrearSolicitud(): boolean {
+        if (!this.esEstudiante()) return false;
+        if (this.solicitudes.length === 0) return true;
+        // Solo puede crear otra si todas fueron SUSPENDIDA o RECHAZADA (nunca completó una)
+        const estadosPermiten = ['SUSPENDIDA', 'RECHAZADA'];
+        return this.solicitudes.every(s => estadosPermiten.includes(s.estado));
+    }
+
     getBadge(estado: string): string {
         const m: Record<string, string> = {
             CREADA: 'badge-creada',

@@ -58,6 +58,16 @@ public class SolicitudServiceImpl implements SolicitudService {
     public Solicitud crearSolicitud(Long estudianteId, Solicitud datos) {
         Estudiante estudiante = estudianteRepository.findById(estudianteId)
                 .orElseThrow(() -> new RuntimeException("Estudiante no encontrado con ID: " + estudianteId));
+
+        // Validar que no tenga solicitud activa o completada
+        List<Solicitud> existentes = solicitudRepository.findByEstudianteId(estudianteId);
+        List<String> estadosPermiten = List.of("SUSPENDIDA", "RECHAZADA");
+        boolean puedeCrear = existentes.isEmpty() || existentes.stream()
+                .allMatch(s -> estadosPermiten.contains(s.getEstado().name()));
+        if (!puedeCrear) {
+            throw new RuntimeException("Ya tienes una solicitud registrada. Solo puedes crear una nueva si fue suspendida o rechazada.");
+        }
+
         datos.setEstado(EstadoSolicitud.CREADA);
         datos.setEstudiante(estudiante);
         datos.setCreadoPor(estudiante.getUsuario());

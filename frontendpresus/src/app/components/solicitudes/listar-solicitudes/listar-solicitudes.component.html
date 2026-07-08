@@ -10,7 +10,7 @@
       <button class="btn-refresh" (click)="cargar()" title="Recargar">
         <i class="bi bi-arrow-clockwise"></i>
       </button>
-      <button class="btn-nueva" routerLink="/dashboard/solicitudes/registrar" *ngIf="esEstudiante()">
+      <button class="btn-nueva" routerLink="/dashboard/solicitudes/registrar" *ngIf="puedeCrearSolicitud()">
         <i class="bi bi-plus-lg me-1"></i> Nueva Solicitud
       </button>
       <button class="btn-nueva" routerLink="/dashboard/admin/revisar-solicitudes" *ngIf="esAdmin()">

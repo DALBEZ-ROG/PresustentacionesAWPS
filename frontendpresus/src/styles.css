@@ -100,3 +100,345 @@ body.dark-mode {
     --panel-title-color: #e6edf3;
     --tj-row-bg: #0d1117;
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   BOTONES DE ACCIÓN — Estilo global reutilizable
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Base para TODOS los botones ────────────────────────────────────── */
+.btn-accion, .btn-ac,
+.btn-nueva, .btn-refresh, .btn-back, .btn-ver, .btn-marcar-todas,
+.btn-enviar, .btn-crear-fase, .btn-subir-pdf, .btn-seleccionar,
+.btn-nueva-sm, .btn-cerrar-noti, .btn-ver-mas,
+.btn-cancelar, .btn-guardar, .btn-descargar,
+.btn-submit-premium, .btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    text-decoration: none;
+    font-family: inherit;
+    line-height: 1.4;
+}
+
+/* ── Botones PEQUEÑOS (acciones en tablas, inline) ──────────────────── */
+.btn-accion, .btn-ac {
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Botones MEDIANOS (navegación, header) ──────────────────────────── */
+.btn-nueva, .btn-back, .btn-ver, .btn-marcar-todas,
+.btn-nueva-sm, .btn-cerrar-noti {
+    padding: 9px 18px;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Botones GRANDES (formularios, submit, CTA) ─────────────────────── */
+.btn-enviar, .btn-crear-fase, .btn-subir-pdf,
+.btn-cancelar, .btn-guardar, .btn-descargar,
+.btn-submit-premium, .btn-cancel {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Botón refresh (icono solo) ─────────────────────────────────────── */
+.btn-refresh {
+    padding: 9px 12px;
+    font-size: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 10px;
+}
+
+/* ── Hover global ───────────────────────────────────────────────────── */
+.btn-accion:hover, .btn-ac:hover,
+.btn-nueva:hover, .btn-refresh:hover, .btn-back:hover,
+.btn-ver:hover, .btn-marcar-todas:hover,
+.btn-enviar:hover, .btn-crear-fase:hover, .btn-subir-pdf:hover,
+.btn-nueva-sm:hover, .btn-cerrar-noti:hover,
+.btn-cancelar:hover, .btn-guardar:hover:not(:disabled),
+.btn-descargar:hover, .btn-submit-premium:hover:not(:disabled),
+.btn-cancel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.btn-accion:active, .btn-ac:active,
+.btn-nueva:active, .btn-refresh:active, .btn-back:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-guardar:disabled, .btn-submit-premium:disabled,
+.btn-enviar:disabled, .btn-subir-pdf:disabled, .btn-crear-fase:disabled {
+    background: #cbd5e1 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ── Variantes de COLOR — Pequeños ──────────────────────────────────── */
+.btn-aprobar    { background: #dcfce7; color: #166534; }
+.btn-aprobar:hover { background: #166534; color: white; }
+
+.btn-rechazar   { background: #fee2e2; color: #991b1b; }
+.btn-rechazar:hover { background: #991b1b; color: white; }
+
+.btn-ver-pdf, .btn-pdf { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.btn-ver-pdf:hover, .btn-pdf:hover { background: #c2410c; color: white; border-color: #c2410c; }
+
+.btn-tribunal   { background: #f3e8ff; color: #6b21a8; }
+.btn-tribunal:hover { background: #6b21a8; color: white; }
+
+.btn-programar  { background: #dbeafe; color: #1e40af; }
+.btn-programar:hover { background: #1e40af; color: white; }
+
+.btn-evaluar    { background: #fef3c7; color: #92400e; }
+.btn-evaluar:hover { background: #92400e; color: white; }
+
+.btn-suspender  { background: #fef2f2; color: #b91c1c; border: 1px dashed #fca5a5; }
+.btn-suspender:hover { background: #b91c1c; color: white; border-style: solid; }
+
+.btn-generar    { background: #eff6ff; color: #1e40af; }
+.btn-generar:hover:not(:disabled) { background: #1e40af; color: white; }
+
+.btn-observaciones { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.btn-observaciones:hover { background: #166534; color: white; border-color: #166534; }
+
+/* ── Variantes de COLOR — Medianos/Grandes ──────────────────────────── */
+.btn-nueva, .btn-nueva-sm { background: #1a5c2e; color: white; }
+.btn-nueva:hover, .btn-nueva-sm:hover { background: #145024; }
+
+.btn-back, .btn-cancel, .btn-cancelar { background: #f1f5f9; color: #475569; }
+.btn-back:hover, .btn-cancel:hover, .btn-cancelar:hover { background: #e2e8f0; color: #334155; }
+
+.btn-ver { background: #eff6ff; color: #1e40af; }
+.btn-ver:hover { background: #1e40af; color: white; }
+
+.btn-marcar-todas { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.btn-marcar-todas:hover { background: #166534; color: white; }
+
+.btn-enviar { background: #1e40af; color: white; }
+.btn-enviar:hover:not(:disabled) { background: #1e3a8a; }
+
+.btn-crear-fase { background: #7c3aed; color: white; }
+.btn-crear-fase:hover:not(:disabled) { background: #6d28d9; }
+
+.btn-subir-pdf { background: #c2410c; color: white; }
+.btn-subir-pdf:hover:not(:disabled) { background: #9a3412; }
+
+.btn-guardar, .btn-submit-premium { background: #1a5c2e; color: white; }
+.btn-guardar:hover:not(:disabled), .btn-submit-premium:hover:not(:disabled) { background: #145024; }
+
+.btn-descargar { background: #1e40af; color: white; }
+.btn-descargar:hover { background: #1e3a8a; }
+
+.btn-cerrar-noti { background: #f1f5f9; color: #64748b; }
+.btn-cerrar-noti:hover { background: #e2e8f0; }
+
+.btn-refresh:hover { background: #e2e8f0; color: #1e293b; }
+
+.btn-ver-mas { background: none; border: none; color: #1e40af; padding: 0 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-decoration: underline; box-shadow: none; }
+.btn-ver-mas:hover { color: #1e3a8a; transform: none; box-shadow: none; }
+
+.sin-accion     { font-size: 0.85rem; color: #94a3b8; font-style: italic; }
+
+/* ── Centrado de celdas de acción ───────────────────────────────────── */
+.acciones-cell {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ── Dark mode — Botones ────────────────────────────────────────────── */
+body.dark-mode .btn-accion, body.dark-mode .btn-ac { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); }
+body.dark-mode .btn-aprobar    { background: #0d2818; color: #4ade80; }
+body.dark-mode .btn-rechazar   { background: #2d0f0f; color: #fca5a5; }
+body.dark-mode .btn-ver-pdf, body.dark-mode .btn-pdf { background: #2a1e04; color: #f0b429; border-color: #4a3500; }
+body.dark-mode .btn-tribunal   { background: #2a1450; color: #d2a8ff; }
+body.dark-mode .btn-programar  { background: #0c1d3d; color: #93c5fd; }
+body.dark-mode .btn-evaluar    { background: #21262d; color: #c9d1d9; }
+body.dark-mode .btn-suspender  { background: #1c0808; color: #fca5a5; border-color: #4a1111; }
+body.dark-mode .btn-generar    { background: #0c1d3d; color: #93c5fd; }
+body.dark-mode .btn-observaciones { background: #0d2818; color: #4ade80; border-color: #1a3d25; }
+body.dark-mode .btn-nueva, body.dark-mode .btn-nueva-sm { background: #238636; color: white; }
+body.dark-mode .btn-back, body.dark-mode .btn-cancel, body.dark-mode .btn-cancelar { background: #21262d; color: #c9d1d9; }
+body.dark-mode .btn-refresh    { background: #21262d; color: #c9d1d9; }
+body.dark-mode .btn-ver        { background: #0c1d3d; color: #93c5fd; }
+body.dark-mode .btn-marcar-todas { background: #0d2818; color: #4ade80; border-color: #1a3d25; }
+body.dark-mode .btn-enviar     { background: #1f6feb; color: white; }
+body.dark-mode .btn-crear-fase { background: #8b5cf6; color: white; }
+body.dark-mode .btn-subir-pdf  { background: #c2410c; color: white; }
+body.dark-mode .btn-guardar, body.dark-mode .btn-submit-premium { background: #238636; color: white; }
+body.dark-mode .btn-descargar  { background: #1f6feb; color: white; }
+body.dark-mode .btn-cerrar-noti { background: #21262d; color: #8b949e; }
+body.dark-mode .btn-ver-mas    { color: #58a6ff; }
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   TABLAS — Centrado de contenido vacío y celdas
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Centrar guiones y contenido vacío en todas las tablas */
+td .sin-accion,
+td .obs-empty,
+.obs-empty {
+    display: block;
+    text-align: center;
+    width: 100%;
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+
+/* Centrar celdas de observaciones cuando solo tienen un guion */
+td {
+    vertical-align: middle;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   BOTONES DE FORMULARIO — Asignar, Submit, Auto
+   ══════════════════════════════════════════════════════════════════════ */
+
+.btn-primary, .btn-auto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #1a5c2e;
+    color: white;
+    box-shadow: 0 3px 10px rgba(26, 92, 46, 0.2);
+}
+
+.btn-primary:hover:not(:disabled), .btn-auto:hover:not(:disabled) {
+    background: #145024;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(26, 92, 46, 0.3);
+}
+
+.btn-primary:disabled, .btn-auto:disabled {
+    background: #cbd5e1;
+    color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #6b21a8;
+    color: white;
+    box-shadow: 0 3px 10px rgba(107, 33, 168, 0.2);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #581c87;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(107, 33, 168, 0.3);
+}
+
+.btn-secondary:disabled {
+    background: #cbd5e1;
+    color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Botones de sugeridos (Jurado/Tutor en cards de sugerencias) */
+.btn-sug {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #1a5c2e;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-sug:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: #145024;
+}
+
+.btn-sug-tutor {
+    background: #6b21a8;
+}
+
+.btn-sug-tutor:hover {
+    background: #581c87;
+}
+
+/* Botón eliminar (x en cards) */
+.btn-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #dc2626;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+
+.btn-remove:hover {
+    background: #dc2626;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Dark mode */
+body.dark-mode .btn-primary, body.dark-mode .btn-auto { background: #238636; }
+body.dark-mode .btn-primary:hover:not(:disabled), body.dark-mode .btn-auto:hover:not(:disabled) { background: #2ea043; }
+body.dark-mode .btn-secondary { background: #8b5cf6; }
+body.dark-mode .btn-secondary:hover:not(:disabled) { background: #7c3aed; }
+body.dark-mode .btn-sug { background: #238636; }
+body.dark-mode .btn-sug:hover { background: #2ea043; }
+body.dark-mode .btn-sug-tutor { background: #8b5cf6; }
+body.dark-mode .btn-sug-tutor:hover { background: #7c3aed; }
+body.dark-mode .btn-remove { background: #2d0f0f; color: #f85149; }
+body.dark-mode .btn-remove:hover { background: #f85149; color: white; }
