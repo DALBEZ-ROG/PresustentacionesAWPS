@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-PreSustentacionesApplication<presustentaciones>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "ec.edu.uteq.presustentaciones.PreSustentacionesApplication",
+            "projectName": "presustentaciones",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

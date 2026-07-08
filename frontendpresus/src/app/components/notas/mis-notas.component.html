@@ -23,11 +23,11 @@
         <tr *ngFor="let e of evaluaciones">
           <td><strong>#{{ e.solicitud?.id }}</strong><br><small class="text-muted">{{ e.solicitud?.tituloTema }}</small></td>
           <td>
-            <div class="nota-ring" [class.aprobado]="e.resultado==='APROBADO'" [class.reprobado]="e.resultado!=='APROBADO'">
-              {{ e.notaFinal }}
+            <div class="nota-ring" [class.aprobado]="getResultado(e)==='APROBADO'" [class.reprobado]="getResultado(e)!=='APROBADO'">
+              {{ getNotaFinal(e)?.toFixed(2) || '—' }}
             </div>
           </td>
-          <td><span class="badge" [ngClass]="getBadge(e.resultado)">{{ e.resultado }}</span></td>
+          <td><span class="badge" [ngClass]="getBadge(getResultado(e))">{{ getResultado(e) }}</span></td>
           <td class="obs-cell">{{ e.observaciones || '—' }}</td>
         </tr>
         <tr *ngIf="evaluaciones.length === 0">

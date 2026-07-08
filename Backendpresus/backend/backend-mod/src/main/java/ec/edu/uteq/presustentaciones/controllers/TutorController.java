@@ -29,10 +29,10 @@ public class TutorController {
     }
 
     @GetMapping("/solicitud/{solicitudId}")
-    public ResponseEntity<Tutor> porSolicitud(@PathVariable Long solicitudId) {
+    public ResponseEntity<?> porSolicitud(@PathVariable Long solicitudId) {
         return tutorService.buscarPorSolicitud(solicitudId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.ok().build());
     }
 
     @GetMapping

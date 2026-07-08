@@ -36,7 +36,8 @@ public class AnteproyectoController {
     @GetMapping("/solicitud/{solicitudId}")
     public ResponseEntity<?> obtenerPorSolicitud(@PathVariable Long solicitudId) {
         return anteproyectoService.buscarPorSolicitud(solicitudId)
-                .map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.ok().build());
     }
 
     @GetMapping("/ver/{solicitudId}")

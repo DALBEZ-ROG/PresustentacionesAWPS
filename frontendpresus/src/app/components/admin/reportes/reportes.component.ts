@@ -61,13 +61,26 @@ export class ReportesComponent implements OnInit {
     get pendientes(): number       { return this.solicitudes.filter(s => s.estado === 'ENVIADA').length; }
 
     get totalEvaluaciones(): number { return this.evaluaciones.length; }
-    get aprobadosEval(): number     { return this.evaluaciones.filter(e => e.resultado === 'APROBADO').length; }
-    get reprobadosEval(): number    { return this.evaluaciones.filter(e => e.resultado === 'REPROBADO').length; }
+    get aprobadosEval(): number     { return this.evaluaciones.filter(e => this.getResultado(e) === 'APROBADO').length; }
+    get reprobadosEval(): number    { return this.evaluaciones.filter(e => this.getResultado(e) === 'REPROBADO').length; }
 
     get promedioNotas(): string {
         if (!this.evaluaciones.length) return '—';
-        const sum = this.evaluaciones.reduce((a, e) => a + (e.notaFinal || 0), 0);
-        return (sum / this.evaluaciones.length).toFixed(2);
+        const notas = this.evaluaciones.map(e => this.getNotaFinal(e)).filter(n => n != null) as number[];
+        if (!notas.length) return '—';
+        const sum = notas.reduce((a, n) => a + n, 0);
+        return (sum / notas.length).toFixed(2);
+    }
+
+    getNotaFinal(e: any): number | null {
+        if (e.notaInstructor == null || e.notaJurado == null) return null;
+        return Math.round(((e.notaInstructor * 60 / 100) + (e.notaJurado * 40 / 100)) * 100) / 100;
+    }
+
+    getResultado(e: any): string {
+        const nf = this.getNotaFinal(e);
+        if (nf == null) return 'PENDIENTE';
+        return nf >= 7 ? 'APROBADO' : 'REPROBADO';
     }
 
     get actasFirmadas(): number   { return this.actas.filter(a => a.firmada).length; }

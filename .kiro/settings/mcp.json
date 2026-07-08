@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://ElToke:12345@localhost:5432/presusDb"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

@@ -51,16 +51,14 @@ public class EstadoTiempoRealController {
         });
 
         evaluacionRepo.findBySolicitudId(id).ifPresent(e -> {
-            estado.put("evaluacionNota", e.getNotaFinal());
-            estado.put("evaluacionResultado", e.getResultado());
+            estado.put("evaluacionNotaInstructor", e.getNotaInstructor());
+            estado.put("evaluacionNotaJurado", e.getNotaJurado());
         });
 
         actaRepo.findBySolicitudId(id).ifPresent(a -> {
             estado.put("actaGenerada", true);
-            estado.put("actaFirmadaPresidente", a.isFirmadaPresidente());
-            estado.put("actaFirmadaVocal1", a.isFirmadaVocal1());
-            estado.put("actaFirmadaVocal2", a.isFirmadaVocal2());
-            estado.put("actaFirmadaTutor", a.isFirmadaTutor());
+            estado.put("actaFirmasCompletadas", a.getFirmasCompletadas());
+            estado.put("actaFirmasRequeridas", a.getFirmasRequeridas());
             estado.put("actaCompleta", a.isFirmada());
         });
 

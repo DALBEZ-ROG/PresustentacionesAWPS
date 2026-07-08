@@ -93,8 +93,19 @@ export class VerObservacionesComponent implements OnInit {
     }
 
     getNotaFinal(): number | null {
-        if (!this.observaciones?.coordinador?.notaFinal) return null;
-        return this.observaciones.coordinador.notaFinal;
+        if (!this.observaciones?.coordinador?.notaInstructor) return null;
+        // Compute from instructor (60%) + average jurado (40%)
+        const notaInst = this.observaciones.coordinador.notaInstructor;
+        const juradosConNota = this.observaciones?.jurados?.filter(j => j.notaJurado != null) || [];
+        if (juradosConNota.length === 0) return null;
+        const promedioJurado = juradosConNota.reduce((sum, j) => sum + (j.notaJurado || 0), 0) / juradosConNota.length;
+        return Math.round(((notaInst * 60 / 100) + (promedioJurado * 40 / 100)) * 100) / 100;
+    }
+
+    getResultado(): string | null {
+        const nf = this.getNotaFinal();
+        if (nf == null) return null;
+        return nf >= 7 ? 'APROBADO' : 'REPROBADO';
     }
 
     getResultadoClass(resultado: string | null | undefined): string {

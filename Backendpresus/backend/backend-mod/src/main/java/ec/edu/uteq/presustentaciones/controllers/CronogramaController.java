@@ -64,8 +64,8 @@ public class CronogramaController {
     @GetMapping public List<Cronograma> listar() { return cronogramaService.listarCronogramas(); }
     @GetMapping("/estudiante/{id}") public List<Cronograma> porEstudiante(@PathVariable Long id) { return cronogramaService.listarPorEstudiante(id); }
     @GetMapping("/usuario/{id}") public List<Cronograma> porUsuario(@PathVariable Long id) { return cronogramaService.listarPorUsuario(id); }
-    @GetMapping("/solicitud/{id}") public ResponseEntity<Cronograma> porSolicitud(@PathVariable Long id) {
-        return cronogramaService.buscarPorSolicitud(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    @GetMapping("/solicitud/{id}") public ResponseEntity<?> porSolicitud(@PathVariable Long id) {
+        return cronogramaService.buscarPorSolicitud(id).<ResponseEntity<?>>map(ResponseEntity::ok).orElse(ResponseEntity.ok().build());
     }
     @DeleteMapping("/{id}") public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         cronogramaService.eliminar(id); return ResponseEntity.noContent().build();

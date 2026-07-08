@@ -99,14 +99,14 @@
             <td>{{ nombreEstudiante(s) }}</td>
             <td class="titulo-cell">{{ s.tituloTema }}</td>
             <td>
-              <span *ngIf="getEval(s.id)">{{ getEval(s.id)?.notaFinal | number:'1.2-2' }}</span>
+              <span *ngIf="getEval(s.id)">{{ getNotaFinal(getEval(s.id))?.toFixed(2) || '—' }}</span>
               <span *ngIf="!getEval(s.id)" class="text-muted">Sin evaluar</span>
             </td>
             <td>
               <span class="badge-resultado" *ngIf="getEval(s.id)"
-                    [class.aprobado]="getEval(s.id)?.resultado === 'APROBADO'"
-                    [class.reprobado]="getEval(s.id)?.resultado === 'REPROBADO'">
-                {{ getEval(s.id)?.resultado }}
+                    [class.aprobado]="getResultado(getEval(s.id)) === 'APROBADO'"
+                    [class.reprobado]="getResultado(getEval(s.id)) === 'REPROBADO'">
+                {{ getResultado(getEval(s.id)) }}
               </span>
               <span *ngIf="!getEval(s.id)" class="text-muted">—</span>
             </td>

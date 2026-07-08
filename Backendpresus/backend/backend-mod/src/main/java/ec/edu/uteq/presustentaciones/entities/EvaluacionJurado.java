@@ -21,9 +21,6 @@ public class EvaluacionJurado {
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
 
-    @Column(name = "resultado", length = 20)
-    private String resultado;
-
     @Column(name = "comentario_preestablecido", columnDefinition = "TEXT")
     private String comentarioPreestablecido;
 
@@ -44,12 +41,5 @@ public class EvaluacionJurado {
     @PrePersist
     protected void onCreate() {
         fechaRegistro = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        if (this.notaJurado != null) {
-            this.resultado = this.notaJurado >= 7 ? "APROBADO" : "REPROBADO";
-        }
     }
 }

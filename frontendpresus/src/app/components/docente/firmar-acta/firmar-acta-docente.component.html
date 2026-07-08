@@ -81,27 +81,27 @@
         </div>
 
         <div class="firmas-grid">
-          <div class="firma-item" [class.ok]="acta.firmadaPresidente">
-            <i class="bi" [class.bi-check-circle-fill]="acta.firmadaPresidente"
-                          [class.bi-circle]="!acta.firmadaPresidente"></i>
+          <div class="firma-item" [class.ok]="firmaEstado('PRESIDENTE')">
+            <i class="bi" [class.bi-check-circle-fill]="firmaEstado('PRESIDENTE')"
+                          [class.bi-circle]="!firmaEstado('PRESIDENTE')"></i>
             <span>Presidente</span>
             <small>{{ getNombrePorRol('PRESIDENTE') }}</small>
           </div>
-          <div class="firma-item" [class.ok]="acta.firmadaVocal1">
-            <i class="bi" [class.bi-check-circle-fill]="acta.firmadaVocal1"
-                          [class.bi-circle]="!acta.firmadaVocal1"></i>
+          <div class="firma-item" [class.ok]="firmaEstado('VOCAL_1')">
+            <i class="bi" [class.bi-check-circle-fill]="firmaEstado('VOCAL_1')"
+                          [class.bi-circle]="!firmaEstado('VOCAL_1')"></i>
             <span>Vocal 1</span>
             <small>{{ getNombrePorRol('VOCAL_1') }}</small>
           </div>
-          <div class="firma-item" [class.ok]="acta.firmadaVocal2">
-            <i class="bi" [class.bi-check-circle-fill]="acta.firmadaVocal2"
-                          [class.bi-circle]="!acta.firmadaVocal2"></i>
+          <div class="firma-item" [class.ok]="firmaEstado('VOCAL_2')">
+            <i class="bi" [class.bi-check-circle-fill]="firmaEstado('VOCAL_2')"
+                          [class.bi-circle]="!firmaEstado('VOCAL_2')"></i>
             <span>Vocal 2</span>
             <small>{{ getNombrePorRol('VOCAL_2') }}</small>
           </div>
-          <div class="firma-item" [class.ok]="acta.firmadaTutor">
-            <i class="bi" [class.bi-check-circle-fill]="acta.firmadaTutor"
-                          [class.bi-circle]="!acta.firmadaTutor"></i>
+          <div class="firma-item" [class.ok]="firmaEstado('TUTOR')">
+            <i class="bi" [class.bi-check-circle-fill]="firmaEstado('TUTOR')"
+                          [class.bi-circle]="!firmaEstado('TUTOR')"></i>
             <span>Tutor</span>
             <small>{{ getNombrePorRol('TUTOR') }}</small>
           </div>
@@ -113,7 +113,7 @@
       </div>
 
       <!-- Acta completamente firmada -->
-      <div class="descarga-panel" *ngIf="acta.firmada">
+      <div class="descarga-panel" *ngIf="acta.firmada && acta.archivoPdf">
         <i class="bi bi-file-earmark-pdf-fill me-2"></i>
         <span>El acta está completamente firmada y disponible para descargar.</span>
         <button class="btn-descargar" (click)="descargar()">

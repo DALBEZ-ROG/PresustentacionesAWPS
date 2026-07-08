@@ -89,14 +89,9 @@ export class FirmarActaDocenteComponent implements OnInit {
     }
 
     firmaEstado(rol: string): boolean {
-        if (!this.acta) return false;
-        const map: Record<string, boolean> = {
-            PRESIDENTE: this.acta.firmadaPresidente,
-            VOCAL_1:    this.acta.firmadaVocal1,
-            VOCAL_2:    this.acta.firmadaVocal2,
-            TUTOR:      this.acta.firmadaTutor,
-        };
-        return map[rol] ?? false;
+        if (!this.acta || !this.acta.firmas) return false;
+        const firma = this.acta.firmas.find((f: any) => f.rolFirmante === rol);
+        return firma?.firmada ?? false;
     }
 
     get algunaFirmaHecha(): boolean {
@@ -129,15 +124,22 @@ export class FirmarActaDocenteComponent implements OnInit {
     }
 
     descargar(): void {
-        if (!this.acta) return;
+        if (!this.acta || !this.acta.archivoPdf) {
+            this.notification.error('El acta no tiene PDF generado. Regenere el acta primero.', 'PDF no disponible');
+            return;
+        }
         this.actaService.descargarPdf(this.acta.id).subscribe({
             next: (blob) => {
+                if (blob.size === 0) {
+                    this.notification.error('El archivo PDF no está disponible. Regenere el acta.', 'Error');
+                    return;
+                }
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url; a.download = `acta_solicitud_${this.solicitudId}.pdf`; a.click();
                 URL.revokeObjectURL(url);
             },
-            error: () => this.notification.error('No se pudo descargar el PDF.', 'Error')
+            error: () => this.notification.error('El archivo PDF no está disponible. Regenere el acta.', 'Error')
         });
     }
 
@@ -152,11 +154,14 @@ export class FirmarActaDocenteComponent implements OnInit {
     }
 
     get firmasCompletas(): string[] {
-        const firmas = [];
-        if (this.acta?.firmadaPresidente) firmas.push('Presidente');
-        if (this.acta?.firmadaVocal1)     firmas.push('Vocal 1');
-        if (this.acta?.firmadaVocal2)     firmas.push('Vocal 2');
-        if (this.acta?.firmadaTutor)      firmas.push('Tutor');
-        return firmas;
+        if (!this.acta?.firmas) return [];
+        return this.acta.firmas
+            .filter((f: any) => f.firmada)
+            .map((f: any) => {
+                const labels: Record<string, string> = {
+                    PRESIDENTE: 'Presidente', VOCAL_1: 'Vocal 1', VOCAL_2: 'Vocal 2', TUTOR: 'Tutor'
+                };
+                return labels[f.rolFirmante] || f.rolFirmante;
+            });
     }
 }

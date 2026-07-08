@@ -64,7 +64,7 @@ export class MisAsignacionesComponent implements OnInit {
 
         const checks = solicitudIds.map(id =>
             this.evaluacionService.porSolicitud(id).pipe(
-                map(eval_ => ({ id, existe: !!eval_?.notaFinal })),
+                map(eval_ => ({ id, existe: !!(eval_?.notaInstructor || eval_?.notaJurado) })),
                 catchError(() => of({ id, existe: false }))
             )
         );

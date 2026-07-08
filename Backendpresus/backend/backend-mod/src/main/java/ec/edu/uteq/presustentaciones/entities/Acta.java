@@ -1,10 +1,12 @@
 package ec.edu.uteq.presustentaciones.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "actas")
@@ -26,66 +28,43 @@ public class Acta {
     @Column(name = "archivo_pdf")
     private String archivoPdf;
 
-    // ── Firma multi-actor (RF-08) ─────────────────────────────────────────────
-
-    /** ¿Ha firmado el presidente del jurado? */
-    @Column(name = "firmada_presidente", nullable = false)
-    @Builder.Default
-    private boolean firmadaPresidente = false;
-
-    @Column(name = "fecha_firma_presidente")
-    private LocalDateTime fechaFirmaPresidente;
-
-    /** ¿Ha firmado el vocal 1? */
-    @Column(name = "firmada_vocal1", nullable = false)
-    @Builder.Default
-    private boolean firmadaVocal1 = false;
-
-    @Column(name = "fecha_firma_vocal1")
-    private LocalDateTime fechaFirmaVocal1;
-
-    /** ¿Ha firmado el vocal 2? */
-    @Column(name = "firmada_vocal2", nullable = false)
-    @Builder.Default
-    private boolean firmadaVocal2 = false;
-
-    @Column(name = "fecha_firma_vocal2")
-    private LocalDateTime fechaFirmaVocal2;
-
-    /** ¿Ha firmado el tutor? */
-    @Column(name = "firmada_tutor", nullable = false)
-    @Builder.Default
-    private boolean firmadaTutor = false;
-
-    @Column(name = "fecha_firma_tutor")
-    private LocalDateTime fechaFirmaTutor;
-
-    /** true solo cuando TODOS los actores requeridos han firmado */
-    @Column(name = "firmada", nullable = false)
-    @Builder.Default
-    private boolean firmada = false;
-
     @Column(name = "observaciones_acta", columnDefinition = "TEXT")
     private String observacionesActa;
 
     @OneToOne
     @JoinColumn(name = "solicitud_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Solicitud solicitud;
 
-    // ── Helper ───────────────────────────────────────────────────────────────
-    /** El acta queda totalmente firmada cuando presidente + ambos vocales + tutor firmaron */
-    public void actualizarEstadoFirma() {
-        this.firmada = firmadaPresidente && firmadaVocal1 && firmadaVocal2 && firmadaTutor;
+    @OneToMany(mappedBy = "acta", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @Builder.Default
+    private List<ActaFirma> firmas = new ArrayList<>();
+
+    /** true solo cuando TODOS los firmantes han firmado */
+    public boolean isFirmada() {
+        if (firmas == null || firmas.isEmpty()) return false;
+        return firmas.stream().allMatch(ActaFirma::isFirmada);
     }
 
     /** Retorna los firmantes pendientes como texto */
     public String getFirmantesPendientes() {
+        if (firmas == null || firmas.isEmpty()) return "Sin firmantes asignados";
         StringBuilder sb = new StringBuilder();
-        if (!firmadaPresidente) sb.append("Presidente, ");
-        if (!firmadaVocal1)     sb.append("Vocal 1, ");
-        if (!firmadaVocal2)     sb.append("Vocal 2, ");
-        if (!firmadaTutor)      sb.append("Tutor, ");
+        for (ActaFirma firma : firmas) {
+            if (!firma.isFirmada()) {
+                sb.append(firma.getRolFirmante()).append(", ");
+            }
+        }
         String result = sb.toString();
         return result.isEmpty() ? "Todos firmaron" : result.substring(0, result.length() - 2);
+    }
+
+    public long getFirmasCompletadas() {
+        if (firmas == null) return 0;
+        return firmas.stream().filter(ActaFirma::isFirmada).count();
+    }
+
+    public long getFirmasRequeridas() {
+        return firmas == null ? 0 : firmas.size();
     }
 }

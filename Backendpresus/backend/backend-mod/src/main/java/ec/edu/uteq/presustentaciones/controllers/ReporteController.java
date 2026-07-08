@@ -14,8 +14,11 @@ import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import ec.edu.uteq.presustentaciones.entities.Cronograma;
 import ec.edu.uteq.presustentaciones.entities.Evaluacion;
+import ec.edu.uteq.presustentaciones.entities.Modalidad;
+import ec.edu.uteq.presustentaciones.enums.EstadoSolicitud;
 import ec.edu.uteq.presustentaciones.repositories.CronogramaRepository;
 import ec.edu.uteq.presustentaciones.repositories.EvaluacionRepository;
+import ec.edu.uteq.presustentaciones.repositories.ModalidadRepository;
 import ec.edu.uteq.presustentaciones.repositories.SolicitudRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -24,10 +27,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -38,8 +43,9 @@ public class ReporteController {
     private final CronogramaRepository cronogramaRepo;
     private final EvaluacionRepository evaluacionRepo;
     private final SolicitudRepository solicitudRepo;
+    private final ModalidadRepository modalidadRepo;
 
-    // ── Colores — siempre new DeviceRgb para evitar conflicto con Color.WHITE ──
+    // ── Colores ──
     private static DeviceRgb BLUE()       { return new DeviceRgb(0,   56,  101); }
     private static DeviceRgb GOLD()       { return new DeviceRgb(204, 153, 0);   }
     private static DeviceRgb WHITE()      { return new DeviceRgb(255, 255, 255); }
@@ -108,12 +114,21 @@ public class ReporteController {
     public ResponseEntity<byte[]> reporteEstadisticas() throws Exception {
         List<Evaluacion> evals = evaluacionRepo.findAll();
 
-        long total      = evals.size();
-        long aprobados  = evals.stream().filter(e -> "APROBADO".equals(e.getResultado())).count();
-        long reprobados = evals.stream().filter(e -> "REPROBADO".equals(e.getResultado())).count();
-        double promedio = evals.stream()
-                .mapToDouble(e -> e.getNotaFinal() != null ? e.getNotaFinal() : 0)
-                .filter(n -> n > 0).average().orElse(0);
+        long total = evals.size();
+        long aprobados = 0, reprobados = 0;
+        double sumaNotas = 0;
+        int conNota = 0;
+
+        for (Evaluacion e : evals) {
+            Double nf = calcularNotaFinal(e);
+            if (nf != null) {
+                sumaNotas += nf;
+                conNota++;
+                if (nf >= getNotaMinima(e)) aprobados++;
+                else reprobados++;
+            }
+        }
+        double promedio = conNota > 0 ? sumaNotas / conNota : 0;
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Document doc = abrirDoc(baos);
@@ -124,7 +139,6 @@ public class ReporteController {
                 "Estadísticas de Evaluaciones",
                 "Pre-Sustentaciones TIC II — Carrera Software");
 
-        // Resumen en 4 celdas
         Table resumen = new Table(UnitValue.createPercentArray(new float[]{1, 1, 1, 1})).useAllAvailableWidth();
         celdaStat(resumen, "Total evaluados", String.valueOf(total),      bold, regular, BLUE());
         celdaStat(resumen, "Aprobados",       String.valueOf(aprobados),  bold, regular, GREEN());
@@ -133,7 +147,6 @@ public class ReporteController {
         doc.add(resumen);
         doc.add(new Paragraph(" ").setMarginBottom(16));
 
-        // Tabla detalle
         Table tabla = new Table(UnitValue.createPercentArray(new float[]{3, 14, 5, 5, 5, 5})).useAllAvailableWidth();
         for (String h : new String[]{"#", "Estudiante / Tema", "Nota Inst.", "Nota Trib.", "Nota Final", "Resultado"}) {
             tabla.addHeaderCell(new Cell()
@@ -151,6 +164,9 @@ public class ReporteController {
                 if (u != null) est = u.getNombre() + " " + u.getApellido();
                 if (e.getSolicitud().getTituloTema() != null) tema = e.getSolicitud().getTituloTema();
             }
+            Double notaFinal = calcularNotaFinal(e);
+            String resultado = calcularResultado(e);
+
             tabla.addCell(celda(String.valueOf(idx++), regular, bg, TextAlignment.CENTER));
             tabla.addCell(new Cell()
                     .add(new Paragraph(est).setFont(bold).setFontSize(8))
@@ -158,11 +174,10 @@ public class ReporteController {
                     .setBackgroundColor(bg));
             tabla.addCell(celda(fmt(e.getNotaInstructor()), regular, bg, TextAlignment.CENTER));
             tabla.addCell(celda(fmt(e.getNotaJurado()),     regular, bg, TextAlignment.CENTER));
-            tabla.addCell(celda(fmt(e.getNotaFinal()),      bold,    bg, TextAlignment.CENTER));
-            // Color resultado: verde=aprobado, rojo=reprobado
-            DeviceRgb rc = "APROBADO".equals(e.getResultado()) ? GREEN() : RED();
+            tabla.addCell(celda(fmt(notaFinal),             bold,    bg, TextAlignment.CENTER));
+            DeviceRgb rc = "APROBADO".equals(resultado) ? GREEN() : RED();
             tabla.addCell(new Cell()
-                    .add(new Paragraph(e.getResultado() != null ? e.getResultado() : "—")
+                    .add(new Paragraph(resultado != null ? resultado : "—")
                             .setFont(bold).setFontSize(8).setFontColor(rc))
                     .setBackgroundColor(bg).setTextAlignment(TextAlignment.CENTER));
         }
@@ -176,13 +191,22 @@ public class ReporteController {
     @GetMapping("/estadisticas/json")
     public ResponseEntity<Map<String, Object>> estadisticasJson() {
         List<Evaluacion> evals = evaluacionRepo.findAll();
-        long total      = evals.size();
-        long aprobados  = evals.stream().filter(e -> "APROBADO".equals(e.getResultado())).count();
-        long reprobados = evals.stream().filter(e -> "REPROBADO".equals(e.getResultado())).count();
-        double promedio = evals.stream()
-                .mapToDouble(e -> e.getNotaFinal() != null ? e.getNotaFinal() : 0)
-                .filter(n -> n > 0).average().orElse(0);
-        long pendientes = solicitudRepo.countByEstado("APROBADA");
+        long total = evals.size();
+        long aprobados = 0, reprobados = 0;
+        double sumaNotas = 0;
+        int conNota = 0;
+
+        for (Evaluacion e : evals) {
+            Double nf = calcularNotaFinal(e);
+            if (nf != null) {
+                sumaNotas += nf;
+                conNota++;
+                if (nf >= getNotaMinima(e)) aprobados++;
+                else reprobados++;
+            }
+        }
+        double promedio = conNota > 0 ? sumaNotas / conNota : 0;
+        long pendientes = solicitudRepo.countByEstado(EstadoSolicitud.APROBADA);
 
         return ResponseEntity.ok(Map.of(
                 "totalEvaluados",       total,
@@ -194,7 +218,38 @@ public class ReporteController {
         ));
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // ── Helpers de cálculo ───────────────────────────────────────────────────
+
+    private Double calcularNotaFinal(Evaluacion e) {
+        if (e.getNotaInstructor() == null || e.getNotaJurado() == null) return null;
+        Modalidad mod = getModalidad(e);
+        double pesoInst = mod != null ? mod.getPesoInstructor().doubleValue() : 60.0;
+        double pesoJur  = mod != null ? mod.getPesoJurado().doubleValue() : 40.0;
+        double nf = (e.getNotaInstructor() * pesoInst / 100.0) + (e.getNotaJurado() * pesoJur / 100.0);
+        return Math.round(nf * 100.0) / 100.0;
+    }
+
+    private String calcularResultado(Evaluacion e) {
+        Double nf = calcularNotaFinal(e);
+        if (nf == null) return "PENDIENTE";
+        double minima = getNotaMinima(e);
+        return nf >= minima ? "APROBADO" : "REPROBADO";
+    }
+
+    private double getNotaMinima(Evaluacion e) {
+        Modalidad mod = getModalidad(e);
+        return mod != null ? mod.getNotaMinimaAprobacion().doubleValue() : 7.0;
+    }
+
+    private Modalidad getModalidad(Evaluacion e) {
+        if (e.getSolicitud() != null && e.getSolicitud().getModalidad() != null) {
+            Optional<Modalidad> modOpt = modalidadRepo.findById(e.getSolicitud().getModalidad());
+            return modOpt.orElse(null);
+        }
+        return null;
+    }
+
+    // ── Helpers PDF ──────────────────────────────────────────────────────────
 
     private Document abrirDoc(ByteArrayOutputStream baos) throws Exception {
         PdfDocument pdf = new PdfDocument(new PdfWriter(baos));

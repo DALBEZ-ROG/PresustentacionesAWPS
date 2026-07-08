@@ -15,10 +15,12 @@ import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.io.font.constants.StandardFonts;
 import ec.edu.uteq.presustentaciones.entities.Acta;
+import ec.edu.uteq.presustentaciones.entities.ActaFirma;
 import ec.edu.uteq.presustentaciones.entities.Evaluacion;
 import ec.edu.uteq.presustentaciones.entities.Jurado;
 import ec.edu.uteq.presustentaciones.entities.Solicitud;
 import ec.edu.uteq.presustentaciones.enums.EstadoSolicitud;
+import ec.edu.uteq.presustentaciones.repositories.ActaFirmaRepository;
 import ec.edu.uteq.presustentaciones.repositories.ActaRepository;
 import ec.edu.uteq.presustentaciones.repositories.EvaluacionRepository;
 import ec.edu.uteq.presustentaciones.repositories.JuradoRepository;
@@ -27,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -44,6 +47,7 @@ import java.util.Optional;
 public class ActaServiceImpl implements ActaService {
 
     private final ActaRepository actaRepository;
+    private final ActaFirmaRepository actaFirmaRepository;
     private final SolicitudRepository solicitudRepository;
     private final EvaluacionRepository evaluacionRepository;
     private final JuradoRepository juradoRepository;
@@ -58,11 +62,11 @@ public class ActaServiceImpl implements ActaService {
     private static final DeviceRgb MEDIUM_GRAY  = new DeviceRgb(200, 200, 200);
 
     @Override
+    @Transactional
     public Acta generarActa(Long solicitudId) {
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada: " + solicitudId));
 
-        // Buscar evaluación y jurados
         Optional<Evaluacion> evalOpt = evaluacionRepository.findBySolicitudId(solicitudId);
         List<Jurado> jurados = juradoRepository.findBySolicitudId(solicitudId);
 
@@ -77,8 +81,8 @@ public class ActaServiceImpl implements ActaService {
         String nombreArchivo = "acta_" + solicitudId + "_" + System.currentTimeMillis() + ".pdf";
         String rutaCompleta = actasDir + "/" + nombreArchivo;
 
-        // Generar PDF con iText
-        generarPdf(rutaCompleta, solicitud, evalOpt.orElse(null), jurados);
+        // Generar PDF
+        generarPdf(rutaCompleta, solicitud, evalOpt.orElse(null), jurados, null);
 
         Acta acta = actaRepository.findBySolicitudId(solicitudId)
                 .orElse(Acta.builder()
@@ -87,24 +91,47 @@ public class ActaServiceImpl implements ActaService {
                         .build());
         acta.setArchivoPdf(nombreArchivo);
         acta.setFechaGeneracion(LocalDate.now());
-        return actaRepository.save(acta);
+        acta = actaRepository.save(acta);
+
+        // Crear firmas iniciales si no existen
+        if (acta.getFirmas() == null || acta.getFirmas().isEmpty()) {
+            String[] roles = {"PRESIDENTE", "VOCAL_1", "VOCAL_2", "TUTOR"};
+            for (String rol : roles) {
+                ActaFirma firma = ActaFirma.builder()
+                        .acta(acta)
+                        .rolFirmante(rol)
+                        .firmada(false)
+                        .build();
+                actaFirmaRepository.save(firma);
+            }
+            // Recargar con firmas
+            acta = actaRepository.findById(acta.getId()).orElse(acta);
+        }
+
+        return acta;
     }
 
     @Override
+    @Transactional
     public Acta firmarActa(Long actaId, String rol) {
         Acta acta = actaRepository.findById(actaId)
                 .orElseThrow(() -> new RuntimeException("Acta no encontrada: " + actaId));
 
-        LocalDateTime ahora = LocalDateTime.now();
-        switch (rol.toUpperCase()) {
-            case "PRESIDENTE" -> { acta.setFirmadaPresidente(true); acta.setFechaFirmaPresidente(ahora); }
-            case "VOCAL_1"    -> { acta.setFirmadaVocal1(true);     acta.setFechaFirmaVocal1(ahora); }
-            case "VOCAL_2"    -> { acta.setFirmadaVocal2(true);     acta.setFechaFirmaVocal2(ahora); }
-            case "TUTOR"      -> { acta.setFirmadaTutor(true);      acta.setFechaFirmaTutor(ahora); }
-            default -> throw new RuntimeException("Rol inválido: " + rol + ". Use: PRESIDENTE, VOCAL_1, VOCAL_2, TUTOR");
+        String rolUpper = rol.toUpperCase();
+        List<String> rolesValidos = List.of("PRESIDENTE", "VOCAL_1", "VOCAL_2", "TUTOR");
+        if (!rolesValidos.contains(rolUpper)) {
+            throw new RuntimeException("Rol inválido: " + rol + ". Use: PRESIDENTE, VOCAL_1, VOCAL_2, TUTOR");
         }
 
-        acta.actualizarEstadoFirma();
+        ActaFirma firma = actaFirmaRepository.findByActaIdAndRolFirmante(actaId, rolUpper)
+                .orElseThrow(() -> new RuntimeException("No se encontró firma para rol: " + rolUpper));
+
+        firma.setFirmada(true);
+        firma.setFechaFirma(LocalDateTime.now());
+        actaFirmaRepository.save(firma);
+
+        // Recargar acta con firmas actualizadas
+        acta = actaRepository.findById(actaId).orElse(acta);
 
         // Si el acta quedó completamente firmada, cambiar estado a COMPLETADA y regenerar PDF
         if (acta.isFirmada()) {
@@ -121,7 +148,7 @@ public class ActaServiceImpl implements ActaService {
             }
         }
 
-        return actaRepository.save(acta);
+        return acta;
     }
 
     @Override
@@ -151,10 +178,6 @@ public class ActaServiceImpl implements ActaService {
 
     // ── Generación PDF ────────────────────────────────────────────────────────
 
-    private void generarPdf(String ruta, Solicitud solicitud, Evaluacion evaluacion, List<Jurado> jurados) {
-        generarPdf(ruta, solicitud, evaluacion, jurados, null);
-    }
-
     private void generarPdf(String ruta, Solicitud solicitud, Evaluacion evaluacion,
                              List<Jurado> jurados, Acta acta) {
         try {
@@ -173,7 +196,6 @@ public class ActaServiceImpl implements ActaService {
             Table header = new Table(UnitValue.createPercentArray(new float[]{20f, 60f, 20f}))
                     .setWidth(UnitValue.createPercentValue(100));
 
-            // Logo placeholder (azul UTEQ)
             Cell logoCell = new Cell()
                     .add(new Paragraph("UTEQ").setFont(fontBold).setFontSize(18)
                             .setFontColor(ColorConstants.WHITE).setTextAlignment(TextAlignment.CENTER))
@@ -182,7 +204,6 @@ public class ActaServiceImpl implements ActaService {
                     .setPadding(15);
             header.addCell(logoCell);
 
-            // Título central
             Cell titleCell = new Cell()
                     .add(new Paragraph("ACTA DE PRE-SUSTENTACIÓN")
                             .setFont(fontBold).setFontSize(14).setFontColor(UTEQ_BLUE)
@@ -196,7 +217,6 @@ public class ActaServiceImpl implements ActaService {
                     .setBorder(Border.NO_BORDER).setPadding(10);
             header.addCell(titleCell);
 
-            // Número de acta
             Cell numCell = new Cell()
                     .add(new Paragraph("No. " + solicitud.getId())
                             .setFont(fontBold).setFontSize(12).setFontColor(UTEQ_GOLD)
@@ -208,7 +228,6 @@ public class ActaServiceImpl implements ActaService {
             header.addCell(numCell);
             document.add(header);
 
-            // Línea separadora dorada
             document.add(new LineSeparator(new com.itextpdf.kernel.pdf.canvas.draw.SolidLine(3f))
                     .setStrokeColor(UTEQ_GOLD));
             document.add(new Paragraph("\n").setMargin(2));
@@ -258,41 +277,18 @@ public class ActaServiceImpl implements ActaService {
             if (evaluacion != null) {
                 Table evalTable = new Table(UnitValue.createPercentArray(new float[]{50f, 25f, 25f}))
                         .setWidth(UnitValue.createPercentValue(100)).setMarginBottom(10);
-                addHeaderRow(evalTable, new String[]{"Concepto", "Peso (%)", "Nota"}, fontBold);
-                evalTable.addCell(dataCell("Instructor del curso (Titulación II)", fontRegular));
-                evalTable.addCell(dataCell(String.format("%.0f%%", evalTable != null ? evaluacion.getPesoInstructor() : 60.0), fontRegular));
+                addHeaderRow(evalTable, new String[]{"Concepto", "Detalle", "Nota"}, fontBold);
+                evalTable.addCell(dataCell("Nota Instructor", fontRegular));
+                evalTable.addCell(dataCell("—", fontRegular));
                 evalTable.addCell(dataCell(evaluacion.getNotaInstructor() != null
                         ? String.format("%.2f", evaluacion.getNotaInstructor()) : "—", fontRegular));
 
-                evalTable.addCell(dataCell("Tribunal evaluador", fontRegular));
-                evalTable.addCell(dataCell(String.format("%.0f%%", evaluacion.getPesoJurado()), fontRegular));
+                evalTable.addCell(dataCell("Nota Jurado", fontRegular));
+                evalTable.addCell(dataCell("—", fontRegular));
                 evalTable.addCell(dataCell(evaluacion.getNotaJurado() != null
                         ? String.format("%.2f", evaluacion.getNotaJurado()) : "—", fontRegular));
 
-                // Fila de total
-                Cell totalLabel = new Cell().add(new Paragraph("NOTA FINAL").setFont(fontBold).setFontSize(10))
-                        .setBackgroundColor(UTEQ_BLUE).setFontColor(ColorConstants.WHITE)
-                        .setPadding(6).setBorder(Border.NO_BORDER);
-                Cell totalPeso = new Cell().add(new Paragraph("100%").setFont(fontBold).setFontSize(10)
-                        .setFontColor(ColorConstants.WHITE))
-                        .setBackgroundColor(UTEQ_BLUE).setPadding(6).setBorder(Border.NO_BORDER);
-                Cell totalNota = new Cell().add(new Paragraph(evaluacion.getNotaFinal() != null
-                        ? String.format("%.2f / 10", evaluacion.getNotaFinal()) : "—")
-                        .setFont(fontBold).setFontSize(10).setFontColor(UTEQ_GOLD))
-                        .setBackgroundColor(UTEQ_BLUE).setPadding(6).setBorder(Border.NO_BORDER);
-                evalTable.addCell(totalLabel);
-                evalTable.addCell(totalPeso);
-                evalTable.addCell(totalNota);
                 document.add(evalTable);
-
-                // Resultado
-                String resultado = nvl(evaluacion.getResultado());
-                DeviceRgb resultColor = "APROBADO".equals(resultado)
-                        ? new DeviceRgb(0, 128, 0) : new DeviceRgb(180, 0, 0);
-                document.add(new Paragraph("RESULTADO: " + resultado)
-                        .setFont(fontBold).setFontSize(14).setFontColor(resultColor)
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setBorder(new SolidBorder(resultColor, 2)).setPadding(8).setMarginBottom(10));
 
                 if (evaluacion.getObservaciones() != null && !evaluacion.getObservaciones().isBlank()) {
                     document.add(sectionTitle("Observaciones del tribunal:", fontBold));
@@ -311,21 +307,22 @@ public class ActaServiceImpl implements ActaService {
                     .setWidth(UnitValue.createPercentValue(100)).setMarginBottom(15);
 
             String[] rolesLabel = {"Presidente", "Vocal 1", "Vocal 2", "Tutor"};
-            boolean[] firmados  = {
-                acta != null && acta.isFirmadaPresidente(),
-                acta != null && acta.isFirmadaVocal1(),
-                acta != null && acta.isFirmadaVocal2(),
-                acta != null && acta.isFirmadaTutor()
-            };
-            LocalDateTime[] fechasFirma = {
-                acta != null ? acta.getFechaFirmaPresidente() : null,
-                acta != null ? acta.getFechaFirmaVocal1() : null,
-                acta != null ? acta.getFechaFirmaVocal2() : null,
-                acta != null ? acta.getFechaFirmaTutor() : null
-            };
+            String[] rolesCodigo = {"PRESIDENTE", "VOCAL_1", "VOCAL_2", "TUTOR"};
 
             for (int i = 0; i < 4; i++) {
-                boolean firmado = firmados[i];
+                boolean firmado = false;
+                LocalDateTime fechaFirma = null;
+                if (acta != null && acta.getFirmas() != null) {
+                    final String rolBuscar = rolesCodigo[i];
+                    Optional<ActaFirma> firmaOpt = acta.getFirmas().stream()
+                            .filter(f -> f.getRolFirmante().equals(rolBuscar))
+                            .findFirst();
+                    if (firmaOpt.isPresent()) {
+                        firmado = firmaOpt.get().isFirmada();
+                        fechaFirma = firmaOpt.get().getFechaFirma();
+                    }
+                }
+
                 Cell firmaCell = new Cell()
                         .add(new Paragraph(rolesLabel[i]).setFont(fontBold).setFontSize(9)
                                 .setTextAlignment(TextAlignment.CENTER))
@@ -333,8 +330,8 @@ public class ActaServiceImpl implements ActaService {
                                 .setFont(fontBold).setFontSize(10)
                                 .setFontColor(firmado ? new DeviceRgb(0, 128, 0) : new DeviceRgb(150, 150, 150))
                                 .setTextAlignment(TextAlignment.CENTER))
-                        .add(new Paragraph(firmado && fechasFirma[i] != null
-                                ? fechasFirma[i].format(fmtDt) : " ")
+                        .add(new Paragraph(firmado && fechaFirma != null
+                                ? fechaFirma.format(fmtDt) : " ")
                                 .setFont(fontRegular).setFontSize(7)
                                 .setTextAlignment(TextAlignment.CENTER))
                         .setBackgroundColor(firmado ? new DeviceRgb(230, 255, 230) : LIGHT_GRAY)

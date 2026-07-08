@@ -20,38 +20,25 @@ public class EvaluacionController {
     }
 
     /**
-     * RF-09: Registrar evaluación con ponderación 60/40 configurable.
-     * notaInstructor: nota del docente de Titulación (60% por defecto)
-     * notaJurado: nota promedio del tribunal (40% por defecto)
-     * pesoInstructor / pesoJurado: pesos configurables (deben sumar 100)
+     * RF-09: Registrar evaluación con notas de instructor y jurado.
+     * Los pesos y nota final se calculan desde la modalidad (tabla normalizada).
      */
-    @PostMapping("/evaluar-ponderado")
-    public ResponseEntity<?> evaluarPonderado(
+    @PostMapping("/evaluar")
+    public ResponseEntity<?> evaluar(
             @RequestParam Long solicitudId,
             @RequestParam Long rubricaId,
-            @RequestParam Double notaInstructor,
-            @RequestParam Double notaJurado,
-            @RequestParam String observaciones,
-            @RequestParam(defaultValue = "60.0") Double pesoInstructor,
-            @RequestParam(defaultValue = "40.0") Double pesoJurado) {
+            @RequestParam(required = false) Double notaInstructor,
+            @RequestParam(required = false) Double notaJurado,
+            @RequestParam(required = false, defaultValue = "") String observaciones) {
         try {
             Evaluacion e = evaluacionService.evaluarSolicitud(
                     solicitudId, rubricaId,
                     notaInstructor, notaJurado,
-                    observaciones, pesoInstructor, pesoJurado);
+                    observaciones);
             return ResponseEntity.ok(e);
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
-    }
-
-    /** Endpoint legado: recibe nota final directa */
-    @PostMapping("/evaluar")
-    public Evaluacion evaluar(@RequestParam Long solicitudId,
-                              @RequestParam Long rubricaId,
-                              @RequestParam Double notaFinal,
-                              @RequestParam String observaciones) {
-        return evaluacionService.evaluarSolicitud(solicitudId, rubricaId, notaFinal, observaciones);
     }
 
     @GetMapping
@@ -70,9 +57,9 @@ public class EvaluacionController {
     }
 
     @GetMapping("/solicitud/{solicitudId}")
-    public ResponseEntity<Evaluacion> porSolicitud(@PathVariable Long solicitudId) {
+    public ResponseEntity<?> porSolicitud(@PathVariable Long solicitudId) {
         return evaluacionService.buscarPorSolicitud(solicitudId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.ok().build());
     }
 }

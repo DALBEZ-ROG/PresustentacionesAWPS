@@ -140,7 +140,7 @@ public class JuradoServiceImpl implements JuradoService {
     @Override
     public Optional<Tutor> obtenerTutorDeSolicitud(Long solicitudId) {
         return tutorRepository.findBySolicitudId(solicitudId)
-                .filter(t -> "ACTIVO".equals(t.getEstado()));
+                .filter(t -> "ACTIVO".equals(t.getEstado()) || "COMPLETADA".equals(t.getEstado()));
     }
 
     @Override

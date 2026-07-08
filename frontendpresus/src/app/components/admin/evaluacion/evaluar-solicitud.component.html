@@ -176,14 +176,14 @@
         </div>
         <div class="nota-row total">
           <span class="nota-concepto">NOTA FINAL</span>
-          <span class="nota-valor final">{{ evaluacionExistente.notaFinal?.toFixed(2) }}</span>
+          <span class="nota-valor final">{{ notaFinalPreview.toFixed(2) }}</span>
         </div>
       </div>
 
       <div class="resultado-badge"
-           [class.aprobado]="evaluacionExistente.resultado === 'APROBADO'"
-           [class.reprobado]="evaluacionExistente.resultado === 'REPROBADO'">
-        {{ evaluacionExistente.resultado }}
+           [class.aprobado]="resultadoPreview === 'APROBADO'"
+           [class.reprobado]="resultadoPreview === 'REPROBADO'">
+        {{ resultadoPreview }}
       </div>
 
       <div class="obs-box" *ngIf="evaluacionExistente.observaciones">

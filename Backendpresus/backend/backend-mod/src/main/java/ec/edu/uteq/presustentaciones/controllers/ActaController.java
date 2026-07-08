@@ -50,7 +50,7 @@ public class ActaController {
 
     /** RF-11: Descarga el PDF del acta */
     @GetMapping("/descargar/{actaId}")
-    public ResponseEntity<byte[]> descargarPdf(@PathVariable Long actaId) {
+    public ResponseEntity<?> descargarPdf(@PathVariable Long actaId) {
         try {
             byte[] pdfBytes = actaService.obtenerPdfBytes(actaId);
             return ResponseEntity.ok()
@@ -59,13 +59,13 @@ public class ActaController {
                             "attachment; filename=\"acta_" + actaId + ".pdf\"")
                     .body(pdfBytes);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().body(Map.of("error", "El archivo PDF no está disponible. Regenere el acta."));
         }
     }
 
     /** Vista en línea del PDF (en navegador) */
     @GetMapping("/ver/{actaId}")
-    public ResponseEntity<byte[]> verPdf(@PathVariable Long actaId) {
+    public ResponseEntity<?> verPdf(@PathVariable Long actaId) {
         try {
             byte[] pdfBytes = actaService.obtenerPdfBytes(actaId);
             return ResponseEntity.ok()
@@ -74,7 +74,7 @@ public class ActaController {
                             "inline; filename=\"acta_" + actaId + ".pdf\"")
                     .body(pdfBytes);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().body(Map.of("error", "El archivo PDF no está disponible. Regenere el acta."));
         }
     }
 
@@ -84,9 +84,9 @@ public class ActaController {
     }
 
     @GetMapping("/solicitud/{solicitudId}")
-    public ResponseEntity<Acta> porSolicitud(@PathVariable Long solicitudId) {
+    public ResponseEntity<?> porSolicitud(@PathVariable Long solicitudId) {
         return actaService.buscarPorSolicitud(solicitudId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.ok().build());
     }
 }

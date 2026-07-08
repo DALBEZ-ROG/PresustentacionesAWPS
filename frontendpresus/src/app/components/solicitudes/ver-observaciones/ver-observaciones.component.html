@@ -39,16 +39,16 @@
         <span class="info-label">Tema:</span>
         <span class="info-value">{{ observaciones.tituloTema }}</span>
       </div>
-      <div class="info-row" *ngIf="observaciones.coordinador?.notaFinal">
+      <div class="info-row" *ngIf="getNotaFinal()">
         <span class="info-label">Nota Final:</span>
         <span class="info-value nota-final">
-          {{ observaciones.coordinador!.notaFinal!.toFixed(2) }} / 10
+          {{ getNotaFinal()!.toFixed(2) }} / 10
         </span>
       </div>
-      <div class="info-row" *ngIf="observaciones.coordinador?.resultado">
+      <div class="info-row" *ngIf="getResultado()">
         <span class="info-label">Resultado:</span>
-        <span class="resultado-badge" [ngClass]="getResultadoClass(observaciones.coordinador?.resultado)">
-          {{ observaciones.coordinador?.resultado }}
+        <span class="resultado-badge" [ngClass]="getResultadoClass(getResultado())">
+          {{ getResultado() }}
         </span>
       </div>
     </div>
@@ -70,29 +70,29 @@
           <h3>Evaluación del Coordinador</h3>
           <p class="obs-section-subtitle">Retroalimentación final</p>
         </div>
-        <div class="jurado-nota" *ngIf="observaciones.coordinador?.notaFinal">
-          <span class="jn-value">{{ observaciones.coordinador!.notaFinal!.toFixed(2) }}</span>
+        <div class="jurado-nota" *ngIf="getNotaFinal()">
+          <span class="jn-value">{{ getNotaFinal()!.toFixed(2) }}</span>
           <span class="jn-max">/ 10</span>
         </div>
       </div>
       
       <!-- Comentario preestablecido (según rango de nota) -->
-      <div class="coord-comentario-pre" *ngIf="observaciones.coordinador?.notaFinal">
+      <div class="coord-comentario-pre" *ngIf="getNotaFinal()">
         <div class="ccp-header">
           <i class="bi bi-info-circle-fill"></i>
           <span>Comentario según rango de nota:</span>
         </div>
         <div class="ccp-badges">
-          <span class="ccp-badge" [ngClass]="'ccp-' + getRangoClassCoord(observaciones.coordinador!.notaFinal!)">
-            <i class="bi" [ngClass]="getRangoIconCoord(observaciones.coordinador!.notaFinal!)"></i>
-            {{ getRangoLabelCoord(observaciones.coordinador!.notaFinal!) }}
+          <span class="ccp-badge" [ngClass]="'ccp-' + getRangoClassCoord(getNotaFinal()!)">
+            <i class="bi" [ngClass]="getRangoIconCoord(getNotaFinal()!)"></i>
+            {{ getRangoLabelCoord(getNotaFinal()!) }}
           </span>
         </div>
-        <p class="ccp-texto">{{ getComentarioPorRango(observaciones.coordinador!.notaFinal!) }}</p>
+        <p class="ccp-texto">{{ getComentarioPorRango(getNotaFinal()!) }}</p>
       </div>
 
       <!-- Observaciones manuales del coordinador -->
-      <div class="coord-observaciones" *ngIf="observaciones.coordinador?.observaciones">
+      <div class="coord-observaciones" *ngIf="observaciones.coordinador!.observaciones">
         <div class="co-header">
           <i class="bi bi-pencil-square"></i>
           <span>Observaciones del coordinador:</span>
@@ -187,7 +187,7 @@
     </div>
 
     <!-- Resumen de evaluación final -->
-    <div class="eval-summary" *ngIf="observaciones.coordinador?.notaFinal">
+    <div class="eval-summary" *ngIf="getNotaFinal()">
       <h3 class="eval-summary-title">
         <i class="bi bi-award me-2"></i>Resumen de Evaluación
       </h3>
@@ -202,12 +202,12 @@
         </div>
         <div class="eval-summary-item total">
           <span class="esi-label">Nota Final</span>
-          <span class="esi-value nota-total">{{ observaciones.coordinador?.notaFinal?.toFixed(2) }} / 10</span>
+          <span class="esi-value nota-total">{{ getNotaFinal()?.toFixed(2) }} / 10</span>
         </div>
         <div class="eval-summary-item">
           <span class="esi-label">Resultado</span>
-          <span class="resultado-badge large" [ngClass]="getResultadoClass(observaciones.coordinador?.resultado)">
-            {{ observaciones.coordinador?.resultado }}
+          <span class="resultado-badge large" [ngClass]="getResultadoClass(getResultado())">
+            {{ getResultado() }}
           </span>
         </div>
       </div>

@@ -41,9 +41,23 @@ export class MisNotasComponent implements OnInit {
         return resultado === 'APROBADO' ? 'badge-aprobado' : 'badge-reprobado';
     }
 
+    /** Compute nota final client-side (60% instructor + 40% jurado default) */
+    getNotaFinal(e: any): number | null {
+        if (e.notaInstructor == null || e.notaJurado == null) return null;
+        return Math.round(((e.notaInstructor * 60 / 100) + (e.notaJurado * 40 / 100)) * 100) / 100;
+    }
+
+    getResultado(e: any): string {
+        const nf = this.getNotaFinal(e);
+        if (nf == null) return 'PENDIENTE';
+        return nf >= 7 ? 'APROBADO' : 'REPROBADO';
+    }
+
     promedio(): number {
         if (!this.evaluaciones.length) return 0;
-        const sum = this.evaluaciones.reduce((a, e) => a + (e.notaFinal || 0), 0);
-        return Math.round((sum / this.evaluaciones.length) * 10) / 10;
+        const notas = this.evaluaciones.map(e => this.getNotaFinal(e)).filter(n => n != null) as number[];
+        if (!notas.length) return 0;
+        const sum = notas.reduce((a, n) => a + n, 0);
+        return Math.round((sum / notas.length) * 10) / 10;
     }
 }

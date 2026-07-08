@@ -73,7 +73,6 @@ public class RubricaEvaluacionServiceImpl implements RubricaEvaluacionService {
                     .solicitud(solicitud)
                     .jurado(jurado)
                     .criterio(criterio)
-                    .escala(cDto.getEscala())
                     .notaObtenida(notaObtenida)
                     .observacionAuto(observacionAuto)
                     .observacionManual(cDto.getObservacionManual())
@@ -130,17 +129,23 @@ public class RubricaEvaluacionServiceImpl implements RubricaEvaluacionService {
                 : "Docente #" + jurado.getId();
 
         List<EvaluacionRubricaResponse.CriterioResultado> detalles = evals.stream()
-                .map(ec -> EvaluacionRubricaResponse.CriterioResultado.builder()
-                        .criterioId(ec.getCriterio().getId())
-                        .nombreCriterio(ec.getCriterio().getNombre())
-                        .ponderacion(ec.getCriterio().getPonderacion())
-                        .escala(ec.getEscala())
-                        .rangoDescripcion(EvaluacionCriterio.getRangoDescripcion(ec.getEscala()))
-                        .notaObtenida(ec.getNotaObtenida())
-                        .observacionAuto(ec.getObservacionAuto())
-                        .observacionManual(ec.getObservacionManual())
-                        .observaciones(ec.getObservaciones())
-                        .build())
+                .map(ec -> {
+                    // Derive escala from notaObtenida and ponderacion
+                    int escalaDerivada = ec.getCriterio().getPonderacion() > 0
+                            ? (int) Math.round(ec.getNotaObtenida() / ec.getCriterio().getPonderacion() * 100.0)
+                            : 0;
+                    return EvaluacionRubricaResponse.CriterioResultado.builder()
+                            .criterioId(ec.getCriterio().getId())
+                            .nombreCriterio(ec.getCriterio().getNombre())
+                            .ponderacion(ec.getCriterio().getPonderacion())
+                            .escala(escalaDerivada)
+                            .rangoDescripcion(EvaluacionCriterio.getRangoDescripcion(escalaDerivada))
+                            .notaObtenida(ec.getNotaObtenida())
+                            .observacionAuto(ec.getObservacionAuto())
+                            .observacionManual(ec.getObservacionManual())
+                            .observaciones(ec.getObservaciones())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         double notaTotal = evals.stream()
@@ -212,15 +217,20 @@ public class RubricaEvaluacionServiceImpl implements RubricaEvaluacionService {
             
             List<EvaluacionCriterio> criterios = evalCriterioRepo.findBySolicitudIdAndJuradoId(solicitudId, jurado.getId());
             List<ObservacionesSolicitudDTO.CriterioObservacionDTO> criteriosDTO = criterios.stream()
-                    .map(ec -> ObservacionesSolicitudDTO.CriterioObservacionDTO.builder()
-                            .nombreCriterio(ec.getCriterio().getNombre())
-                            .ponderacion(ec.getCriterio().getPonderacion())
-                            .escala(ec.getEscala())
-                            .rangoDescripcion(EvaluacionCriterio.getRangoDescripcion(ec.getEscala()))
-                            .notaObtenida(ec.getNotaObtenida())
-                            .observacionAuto(ec.getObservacionAuto())
-                            .observacionManual(ec.getObservacionManual())
-                            .build())
+                    .map(ec -> {
+                        int escalaDerivada = ec.getCriterio().getPonderacion() > 0
+                                ? (int) Math.round(ec.getNotaObtenida() / ec.getCriterio().getPonderacion() * 100.0)
+                                : 0;
+                        return ObservacionesSolicitudDTO.CriterioObservacionDTO.builder()
+                                .nombreCriterio(ec.getCriterio().getNombre())
+                                .ponderacion(ec.getCriterio().getPonderacion())
+                                .escala(escalaDerivada)
+                                .rangoDescripcion(EvaluacionCriterio.getRangoDescripcion(escalaDerivada))
+                                .notaObtenida(ec.getNotaObtenida())
+                                .observacionAuto(ec.getObservacionAuto())
+                                .observacionManual(ec.getObservacionManual())
+                                .build();
+                    })
                     .collect(Collectors.toList());
             
             juradosDTO.add(ObservacionesSolicitudDTO.ObservacionesJuradoDTO.builder()
@@ -230,7 +240,8 @@ public class RubricaEvaluacionServiceImpl implements RubricaEvaluacionService {
                     .criterios(criteriosDTO)
                     .notaJurado(evalJurado != null ? evalJurado.getNotaJurado() : null)
                     .observaciones(evalJurado != null ? evalJurado.getObservaciones() : null)
-                    .resultado(evalJurado != null ? evalJurado.getResultado() : null)
+                    .resultado(evalJurado != null && evalJurado.getNotaJurado() != null
+                            ? (evalJurado.getNotaJurado() >= 7 ? "APROBADO" : "REPROBADO") : null)
                     .comentarioPreestablecido(evalJurado != null ? evalJurado.getComentarioPreestablecido() : null)
                     .build());
         }
@@ -242,8 +253,8 @@ public class RubricaEvaluacionServiceImpl implements RubricaEvaluacionService {
             coordinadorDTO = ObservacionesSolicitudDTO.ObservacionesCoordinadorDTO.builder()
                     .observaciones(ev.getObservaciones())
                     .notaInstructor(ev.getNotaInstructor())
-                    .notaFinal(ev.getNotaFinal())
-                    .resultado(ev.getResultado())
+                    .notaFinal(null) // Computed from v_evaluaciones view
+                    .resultado(null) // Computed from v_evaluaciones view
                     .build();
         }
 

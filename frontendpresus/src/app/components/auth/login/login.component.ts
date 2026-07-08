@@ -53,6 +53,9 @@ export class LoginComponent implements OnInit {
                         this.notification.error('El servidor bloqueó la petición (CORS)', 'Error 403');
                     } else if (err.status === 401) {
                         this.notification.error('Correo o contraseña incorrectos.', 'Acceso Denegado');
+                    } else if (err.status === 400) {
+                        const msg = err.error?.mensaje || 'Datos inválidos. Verifica tu correo y contraseña.';
+                        this.notification.error(msg, 'Error');
                     } else {
                         this.notification.error('No se pudo conectar con el servidor. Verifica que Spring Boot esté activo.', 'Error de Conexión');
                     }

@@ -23,10 +23,6 @@ public class EvaluacionCriterio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Escala aplicada: 1-100 (% del puntaje máximo del criterio) */
-    @Column(name = "escala", nullable = false)
-    private Integer escala;
-
     /** Nota calculada = criterio.ponderacion * escala / 100  (sobre la base del criterio) */
     @Column(name = "nota_obtenida", nullable = false)
     private Double notaObtenida;

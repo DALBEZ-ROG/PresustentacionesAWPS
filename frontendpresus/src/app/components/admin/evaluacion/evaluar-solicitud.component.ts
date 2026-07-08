@@ -152,15 +152,15 @@ export class EvaluarSolicitudComponent implements OnInit {
     const { rubricaId, notaInstructor, observaciones } = this.form.value;
     const notaJurado = this.notaTribunalPromedio!;
 
-    this.evalService.evaluarPonderado(
+    this.evalService.evaluar(
       this.solicitudId, rubricaId,
       notaInstructor, notaJurado,
-      observaciones, 60, 40
+      observaciones
     ).subscribe({
       next: (e) => {
         this.evaluacionExistente = e;
         this.notification.success(
-          `Evaluación registrada. Nota final: ${e.notaFinal?.toFixed(2)} — ${e.resultado}`,
+          `Evaluación registrada. Nota Instructor: ${e.notaInstructor?.toFixed(2)} | Nota Jurado: ${e.notaJurado?.toFixed(2)}`,
           '✓ Evaluado'
         );
         this.enviando = false;
@@ -216,14 +216,9 @@ export class EvaluarSolicitudComponent implements OnInit {
   }
 
   firmaEstado(rol: string): boolean {
-    if (!this.acta) return false;
-    const map: Record<string, boolean> = {
-      PRESIDENTE: this.acta.firmadaPresidente,
-      VOCAL_1:    this.acta.firmadaVocal1,
-      VOCAL_2:    this.acta.firmadaVocal2,
-      TUTOR:      this.acta.firmadaTutor,
-    };
-    return map[rol] ?? false;
+    if (!this.acta || !this.acta.firmas) return false;
+    const firma = this.acta.firmas.find((f: any) => f.rolFirmante === rol);
+    return firma?.firmada ?? false;
   }
 
   getNombreJuradoPorRol(rol: string): string {

@@ -33,9 +33,6 @@ public class Estudiante {
     @Column(name = "semestre", length = 30)
     private String semestre;
 
-    @Column(name = "telefono", length = 30)
-    private String telefono;
-
     @Column(name = "expediente_codigo", unique = true, length = 60)
     private String expedienteCodigo;
 

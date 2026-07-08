@@ -39,7 +39,6 @@ public class EvaluacionJuradoService {
             throw new RuntimeException("La nota debe estar entre 1 y 10.");
         }
 
-        String resultado = notaJurado >= 7 ? "APROBADO" : "REPROBADO";
         String comentarioPreestablecido = generarComentarioPorRango(notaJurado);
 
         Optional<EvaluacionJurado> existente = evaluacionJuradoRepo.findBySolicitudIdAndJuradoId(solicitudId, juradoId);
@@ -49,7 +48,6 @@ public class EvaluacionJuradoService {
             evaluacion = existente.get();
             evaluacion.setNotaJurado(notaJurado);
             evaluacion.setObservaciones(observaciones);
-            evaluacion.setResultado(resultado);
             evaluacion.setComentarioPreestablecido(comentarioPreestablecido);
         } else {
             evaluacion = EvaluacionJurado.builder()
@@ -57,7 +55,6 @@ public class EvaluacionJuradoService {
                     .jurado(jurado)
                     .notaJurado(notaJurado)
                     .observaciones(observaciones)
-                    .resultado(resultado)
                     .comentarioPreestablecido(comentarioPreestablecido)
                     .build();
         }
@@ -94,7 +91,7 @@ public class EvaluacionJuradoService {
                 .juradoId(eval.getJurado().getId())
                 .notaJurado(eval.getNotaJurado())
                 .observaciones(eval.getObservaciones())
-                .resultado(eval.getResultado())
+                .resultado(eval.getNotaJurado() != null ? (eval.getNotaJurado() >= 7 ? "APROBADO" : "REPROBADO") : null)
                 .comentarioPreestablecido(eval.getComentarioPreestablecido())
                 .nombreJurado(nombreJurado)
                 .rolJurado(eval.getJurado().getRol())

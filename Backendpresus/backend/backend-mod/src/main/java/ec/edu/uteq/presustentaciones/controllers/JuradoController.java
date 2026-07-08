@@ -93,10 +93,10 @@ public class JuradoController {
 
     /** Obtener el tutor activo de una solicitud */
     @GetMapping("/tutor/solicitud/{solicitudId}")
-    public ResponseEntity<Tutor> obtenerTutor(@PathVariable Long solicitudId) {
+    public ResponseEntity<?> obtenerTutor(@PathVariable Long solicitudId) {
         return juradoService.obtenerTutorDeSolicitud(solicitudId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.ok().build());
     }
 
     /** Eliminar tutor */

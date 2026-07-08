@@ -30,6 +30,10 @@ public class CriterioRubrica {
     @Builder.Default
     private Integer orden = 1;
 
+    /** Escala máxima del criterio (ej: 10, 100) */
+    @Column(name = "escala", nullable = false)
+    private Integer escala;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "rubrica_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "criterios"})

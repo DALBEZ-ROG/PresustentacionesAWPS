@@ -29,21 +29,17 @@ public class EvaluacionServiceImpl implements EvaluacionService {
     @Transactional
     public Evaluacion evaluarSolicitud(Long solicitudId, Long rubricaId,
                                        Double notaInstructor, Double notaJurado,
-                                       String observaciones,
-                                       Double pesoInstructor, Double pesoJurado) {
+                                       String observaciones) {
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada: " + solicitudId));
         Rubrica rubrica = rubricaRepository.findById(rubricaId)
                 .orElseThrow(() -> new RuntimeException("Rúbrica no encontrada: " + rubricaId));
 
-        double sumaPesos = (pesoInstructor != null ? pesoInstructor : 60.0)
-                + (pesoJurado != null ? pesoJurado : 40.0);
-        if (Math.abs(sumaPesos - 100.0) > 0.01) {
-            throw new RuntimeException("Los pesos deben sumar 100. Suma actual: " + sumaPesos);
+        if (notaInstructor != null && (notaInstructor < 0 || notaInstructor > 10)) {
+            throw new RuntimeException("La nota del instructor debe estar entre 0 y 10.");
         }
-
-        if (notaInstructor < 0 || notaInstructor > 10 || notaJurado < 0 || notaJurado > 10) {
-            throw new RuntimeException("Las notas deben estar entre 0 y 10.");
+        if (notaJurado != null && (notaJurado < 0 || notaJurado > 10)) {
+            throw new RuntimeException("La nota del jurado debe estar entre 0 y 10.");
         }
 
         Evaluacion e = Evaluacion.builder()
@@ -51,47 +47,17 @@ public class EvaluacionServiceImpl implements EvaluacionService {
                 .rubrica(rubrica)
                 .notaInstructor(notaInstructor)
                 .notaJurado(notaJurado)
-                .pesoInstructor(pesoInstructor != null ? pesoInstructor : 60.0)
-                .pesoJurado(pesoJurado != null ? pesoJurado : 40.0)
                 .observaciones(observaciones)
+                .comentarioPreestablecido(generarComentarioPorNotas(notaInstructor, notaJurado))
                 .build();
 
-        e.calcularNotaFinal();
-        e.setComentarioPreestablecido(generarComentarioPorRango(e.getNotaFinal()));
         Evaluacion guardada = evaluacionRepository.save(e);
 
         // Cambiar estado a CALIFICADA
         solicitud.setEstado(EstadoSolicitud.CALIFICADA);
         solicitudRepository.save(solicitud);
 
-        notificarNotaFinal(solicitud, guardada);
-
-        return guardada;
-    }
-
-    @Override
-    @Transactional
-    public Evaluacion evaluarSolicitud(Long solicitudId, Long rubricaId,
-                                       Double notaFinal, String observaciones) {
-        Solicitud solicitud = solicitudRepository.findById(solicitudId)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
-        Rubrica rubrica = rubricaRepository.findById(rubricaId)
-                .orElseThrow(() -> new RuntimeException("Rúbrica no encontrada"));
-
-        Evaluacion e = Evaluacion.builder()
-                .solicitud(solicitud).rubrica(rubrica)
-                .notaFinal(notaFinal).observaciones(observaciones)
-                .pesoInstructor(60.0).pesoJurado(40.0)
-                .resultado(notaFinal >= 7 ? "APROBADO" : "REPROBADO")
-                .build();
-        e.setComentarioPreestablecido(generarComentarioPorRango(notaFinal));
-        Evaluacion guardada = evaluacionRepository.save(e);
-
-        // Cambiar estado a CALIFICADA
-        solicitud.setEstado(EstadoSolicitud.CALIFICADA);
-        solicitudRepository.save(solicitud);
-
-        notificarNotaFinal(solicitud, guardada);
+        notificarEvaluacion(solicitud, guardada);
 
         return guardada;
     }
@@ -116,41 +82,36 @@ public class EvaluacionServiceImpl implements EvaluacionService {
         return evaluacionRepository.findBySolicitudId(solicitudId);
     }
 
+    public String generarComentarioPorNotas(Double notaInstructor, Double notaJurado) {
+        // Promedio simple para generar comentario de orientación
+        double promedio = 0;
+        int count = 0;
+        if (notaInstructor != null) { promedio += notaInstructor; count++; }
+        if (notaJurado != null) { promedio += notaJurado; count++; }
+        if (count == 0) return "";
+        promedio /= count;
 
-    public String generarComentarioPorRango(Double notaFinal) {
-        if (notaFinal == null) return "";
-        if (notaFinal <= 3) {
+        if (promedio <= 3) {
             return "El trabajo no cumple con los requisitos mínimos esperados. Se evidencian falencias significativas que requieren correcciones sustanciales.";
-        } else if (notaFinal <= 6) {
+        } else if (promedio <= 6) {
             return "El trabajo presenta un nivel aceptable pero con aspectos que requieren mejoras o correcciones para alcanzar los estándares esperados.";
         } else {
             return "El trabajo cumple satisfactoriamente con los objetivos y requisitos establecidos, demostrando un desempeño adecuado.";
         }
     }
 
-    // ── Notificación nota final ───────────────────────────────────────────────
-
-    private void notificarNotaFinal(Solicitud solicitud, Evaluacion evaluacion) {
+    private void notificarEvaluacion(Solicitud solicitud, Evaluacion evaluacion) {
         try {
             Long usuarioId = solicitud.getEstudiante().getUsuario().getId();
-            String titulo  = solicitud.getTituloTema();
-            Double nota    = evaluacion.getNotaFinal();
-            String resultado = evaluacion.getResultado() != null ? evaluacion.getResultado()
-                    : (nota != null && nota >= 7 ? "APROBADO" : "REPROBADO");
+            String titulo = solicitud.getTituloTema();
 
-            String emoji = "APROBADO".equals(resultado) ? "🎉" : "😔";
-            String msg;
-
-            if (nota != null) {
-                msg = String.format(
-                        "%s Tu pre-sustentación \"%s\" ha sido evaluada. " +
-                                "Nota final: %.2f / 10 — Resultado: %s. Tu solicitud ahora está en fase de calificación.",
-                        emoji, titulo, nota, resultado);
-            } else {
-                msg = String.format(
-                        "%s Tu pre-sustentación \"%s\" ha sido evaluada. Resultado: %s. Tu solicitud ahora está en fase de calificación.",
-                        emoji, titulo, resultado);
-            }
+            String msg = String.format(
+                    "📝 Tu pre-sustentación \"%s\" ha sido evaluada. " +
+                    "Nota Instructor: %s | Nota Jurado: %s. " +
+                    "Tu solicitud ahora está en fase de calificación.",
+                    titulo,
+                    evaluacion.getNotaInstructor() != null ? String.format("%.2f", evaluacion.getNotaInstructor()) : "Pendiente",
+                    evaluacion.getNotaJurado() != null ? String.format("%.2f", evaluacion.getNotaJurado()) : "Pendiente");
 
             if (evaluacion.getObservaciones() != null && !evaluacion.getObservaciones().isBlank()) {
                 msg += " Observaciones: " + evaluacion.getObservaciones();
@@ -158,7 +119,7 @@ public class EvaluacionServiceImpl implements EvaluacionService {
 
             notificacionService.crearNotificacion(usuarioId, msg);
         } catch (Exception e) {
-            log.warn("No se pudo notificar nota final al estudiante: {}", e.getMessage());
+            log.warn("No se pudo notificar evaluación al estudiante: {}", e.getMessage());
         }
     }
 }
