@@ -390,6 +390,66 @@
 .burbuja-texto  { font-size: 0.875rem; color: #1e293b; margin: 0; }
 .burbuja-hora   { font-size: 0.7rem; color: #6b7280; }
 
+/* Burbuja de PDF adjunto en el chat */
+.msg-pdf-adjunto { align-items: flex-start; }
+.burbuja-pdf {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: 10px 14px;
+  max-width: 80%;
+}
+
+.pdf-adjunto-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pdf-adjunto-icon {
+  font-size: 1.6rem;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.pdf-adjunto-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pdf-adjunto-nombre {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.pdf-adjunto-size {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.btn-pdf-chat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #c2410c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-pdf-chat:hover {
+  background: #9a3412;
+  transform: translateY(-1px);
+}
+
 /* ── Textareas ──────────────────────────────────────────────────────── */
 .textarea-obs,
 .textarea-msg {
@@ -575,11 +635,12 @@
 .panel-nueva-fase {
   background: #f0fdf4;
   border: 1px dashed #86efac;
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
 }
 
 .nueva-fase-titulo {
@@ -769,6 +830,10 @@ body.dark-mode .msg-otro   .burbuja { background: #1e3a5f; }
 body.dark-mode .burbuja-nombre { color: #c9d1d9; }
 body.dark-mode .burbuja-texto  { color: #e6edf3; }
 body.dark-mode .burbuja-hora   { color: #8b949e; }
+body.dark-mode .burbuja-pdf { background: #2a1e04; border-color: #4a3500; }
+body.dark-mode .pdf-adjunto-nombre { color: #e6edf3; }
+body.dark-mode .pdf-adjunto-icon { color: #f87171; }
+body.dark-mode .btn-pdf-chat { background: #c2410c; }
 
 /* Inputs */
 body.dark-mode .textarea-obs,

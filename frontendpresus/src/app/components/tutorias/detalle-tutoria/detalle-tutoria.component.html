@@ -123,11 +123,11 @@
         ></textarea>
         <button
           class="btn-crear-fase"
-          (click)="crearFase()"
+          (click)="confirmarCrearFase()"
           [disabled]="creandoFase"
         >
-          <span *ngIf="!creandoFase"><i class="bi bi-play-circle me-1"></i>Iniciar Fase 1</span>
-          <span *ngIf="creandoFase"><i class="bi bi-hourglass-split me-1"></i>Creando...</span>
+          <span *ngIf="!creandoFase"><i class="bi bi-play-circle me-1"></i> Iniciar Fase 1</span>
+          <span *ngIf="creandoFase"><i class="bi bi-hourglass-split me-1"></i> Creando...</span>
         </button>
       </div>
 
@@ -217,6 +217,22 @@
                 <small class="burbuja-hora">{{ formatDateTime(m.fechaEnvio) }}</small>
               </div>
             </div>
+
+            <!-- PDF subido por el estudiante en esta fase -->
+            <div class="mensaje-wrap msg-pdf-adjunto" *ngIf="fase.archivoPdfEstudiante">
+              <div class="burbuja burbuja-pdf">
+                <div class="pdf-adjunto-row">
+                  <i class="bi bi-file-earmark-pdf-fill pdf-adjunto-icon"></i>
+                  <div class="pdf-adjunto-info">
+                    <span class="pdf-adjunto-nombre">Corrección Fase {{ fase.numeroFase }}</span>
+                    <small class="pdf-adjunto-size" *ngIf="fase.tamanoPdfBytes">{{ formatBytes(fase.tamanoPdfBytes) }}</small>
+                  </div>
+                  <button class="btn-pdf-chat" (click)="verPdf(fase.id)">
+                    <i class="bi bi-eye me-1"></i> Ver
+                  </button>
+                </div>
+              </div>
+            </div>
           </ng-container>
 
           <div *ngIf="fases.length === 0 || !tieneAlgunMensaje()" class="chat-vacio">
@@ -251,14 +267,14 @@
             ></textarea>
             <button
               class="btn-crear-fase"
-              (click)="crearFase()"
+              (click)="confirmarCrearFase()"
               [disabled]="creandoFase"
             >
               <span *ngIf="!creandoFase">
-                <i class="bi bi-play-circle me-1"></i>Iniciar Fase {{ resumen.totalFases + 1 }}
+                <i class="bi bi-play-circle me-1"></i> Iniciar Fase {{ resumen.totalFases + 1 }}
               </span>
               <span *ngIf="creandoFase">
-                <i class="bi bi-hourglass-split me-1"></i>Creando...
+                <i class="bi bi-hourglass-split me-1"></i> Creando...
               </span>
             </button>
           </div>

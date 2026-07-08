@@ -202,12 +202,9 @@ export class DetalleTutoriaComponent implements OnInit {
   // ── Acciones ──────────────────────────────────────────────────────────────
 
   crearFase(): void {
-    if (!this.observacionNuevaFase.trim()) {
-      this.notificationService.error('Debes escribir una observación para iniciar la fase.', 'Campo requerido');
-      return;
-    }
     this.creandoFase = true;
-    this.tutoriaService.crearFaseConObservacion(this.tutorId, this.userId, this.observacionNuevaFase).subscribe({
+    const obs = this.observacionNuevaFase.trim() || 'Inicia la siguiente fase de revisión.';
+    this.tutoriaService.crearFaseConObservacion(this.tutorId, this.userId, obs).subscribe({
       next: () => {
         this.observacionNuevaFase = '';
         this.creandoFase = false;
@@ -219,6 +216,29 @@ export class DetalleTutoriaComponent implements OnInit {
         this.notificationService.error(err?.error?.error || 'Ocurrió un error', 'Error');
       }
     });
+  }
+
+  async confirmarCrearFase(): Promise<void> {
+    const observacion = this.observacionNuevaFase.trim();
+
+    if (!observacion) {
+      const result = await Swal.fire({
+        title: '¿Iniciar fase sin observaciones?',
+        html: 'No has escrito observaciones para el estudiante.<br><br><small>Se recomienda indicar qué correcciones debe realizar en esta nueva fase.</small>',
+        icon: 'question',
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonColor: '#1a5c2e',
+        denyButtonColor: '#1e40af',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Iniciar sin observaciones',
+        denyButtonText: 'Quiero escribir primero',
+        cancelButtonText: 'Cancelar'
+      });
+      if (result.isDenied || result.isDismissed) return;
+    }
+
+    this.crearFase();
   }
 
   subirPdf(): void {

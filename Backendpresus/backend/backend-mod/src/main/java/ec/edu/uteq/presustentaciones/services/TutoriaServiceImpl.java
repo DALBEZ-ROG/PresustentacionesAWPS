@@ -122,6 +122,18 @@ public class TutoriaServiceImpl implements TutoriaService {
                 .build();
         tutoriaMensajeRepository.save(mensaje);
 
+        // Notificar al estudiante que se inició una nueva fase
+        try {
+            Long estudianteUsuarioId = tutor.getSolicitud().getEstudiante().getUsuario().getId();
+            String nombreTutor = tutorUsuario.getNombre() + " " + tutorUsuario.getApellido();
+            String tituloTema = tutor.getSolicitud().getTituloTema();
+            notificacionService.crearNotificacion(estudianteUsuarioId,
+                    String.format("📝 Tu tutor %s ha iniciado la Fase %d de la tutoría \"%s\". Revisa las observaciones y sube tus correcciones.",
+                            nombreTutor, fase.getNumeroFase(), tituloTema));
+        } catch (Exception e) {
+            log.warn("No se pudo notificar al estudiante sobre nueva fase: {}", e.getMessage());
+        }
+
         return mapFaseConMensajes(fase);
     }
 
@@ -283,6 +295,24 @@ public class TutoriaServiceImpl implements TutoriaService {
                         anteproyecto.setObservaciones("PDF final aprobado tras completar las 3 fases de tutoría");
                         anteproyectoRepository.save(anteproyecto);
                     });
+        }
+
+        // Notificar al estudiante que su fase fue aprobada
+        try {
+            Long estudianteUsuarioId = fase.getTutor().getSolicitud().getEstudiante().getUsuario().getId();
+            String nombreTutor = tutorUsuario.getNombre() + " " + tutorUsuario.getApellido();
+            String tituloTema = fase.getTutor().getSolicitud().getTituloTema();
+            String msg;
+            if (totalFases == 3 && fasesAprobadas == 3) {
+                msg = String.format("🎉 ¡Tutoría completada! Tu tutor %s ha aprobado la Fase 3 de \"%s\". Las 3 fases están aprobadas. Puedes continuar con el proceso de sustentación.",
+                        nombreTutor, tituloTema);
+            } else {
+                msg = String.format("✅ Tu tutor %s ha aprobado la Fase %d de la tutoría \"%s\".",
+                        nombreTutor, fase.getNumeroFase(), tituloTema);
+            }
+            notificacionService.crearNotificacion(estudianteUsuarioId, msg);
+        } catch (Exception e) {
+            log.warn("No se pudo notificar al estudiante sobre fase aprobada: {}", e.getMessage());
         }
 
         return mapFaseConMensajes(fase);
