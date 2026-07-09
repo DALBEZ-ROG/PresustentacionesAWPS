@@ -18,11 +18,11 @@
   <div class="noti-list" *ngIf="!cargando">
     <div class="noti-item" [class.no-leida]="!n.leida" *ngFor="let n of notificaciones" (click)="marcarLeida(n.id)">
       <div class="noti-icono" [class.leida]="n.leida">
-        <i class="bi bi-bell-fill" *ngIf="!n.leida"></i>
-        <i class="bi bi-bell" *ngIf="n.leida"></i>
+        <i class="bi" [ngClass]="n.leida ? 'bi-bell' : getIcono(n.mensaje)"></i>
       </div>
       <div class="noti-body">
-        <p class="noti-mensaje">{{ n.mensaje }}</p>
+        <p class="noti-titulo">{{ getTitulo(n.mensaje) }}</p>
+        <p class="noti-detalle" *ngIf="getDetalle(n.mensaje)">{{ getDetalle(n.mensaje) }}</p>
         <span class="noti-fecha">{{ n.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
       </div>
       <div class="noti-estado" *ngIf="!n.leida">

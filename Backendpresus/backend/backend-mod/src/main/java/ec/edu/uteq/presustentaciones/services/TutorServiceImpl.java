@@ -36,13 +36,25 @@ public class TutorServiceImpl implements TutorService {
                 .orElseThrow(() -> new RuntimeException("Docente no encontrado: " + docenteId));
 
         tutorRepository.findBySolicitudId(solicitudId).ifPresent(t -> {
-            // Validar: no permitir cambio si ya tiene fases de tutoría
+            // Validar: no permitir cambio si ya tiene fases de tutoria
             long fasesRegistradas = tutoriaFaseRepository.countByTutorId(t.getId());
             if (fasesRegistradas > 0) {
                 long fasesAprobadas = tutoriaFaseRepository.countByTutorIdAndEstado(t.getId(), "APROBADA");
                 throw new RuntimeException(
                         "No se puede cambiar de tutor. La tutoría ya tiene fases registradas (" +
                         fasesAprobadas + " aprobada(s)). El tutor actual debe continuar el proceso.");
+            }
+            // Notificar al tutor anterior que fue reemplazado
+            if (t.getDocente() != null && !t.getDocente().getId().equals(docenteId)) {
+                try {
+                    notificacionService.crearNotificacion(t.getDocente().getUsuario().getId(),
+                            String.format("Ya no eres tutor del anteproyecto \"%s\" del estudiante %s %s. Se ha asignado un nuevo tutor.",
+                                    solicitud.getTituloTema(),
+                                    solicitud.getEstudiante().getUsuario().getNombre(),
+                                    solicitud.getEstudiante().getUsuario().getApellido()));
+                } catch (Exception e) {
+                    log.warn("No se pudo notificar al tutor anterior: {}", e.getMessage());
+                }
             }
             tutorRepository.delete(t);
         });

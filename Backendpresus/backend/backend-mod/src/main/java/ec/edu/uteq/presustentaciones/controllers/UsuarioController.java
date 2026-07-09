@@ -91,13 +91,13 @@ public class UsuarioController {
     }
 
     @PatchMapping("/{id}/perfil")
-    @Operation(summary = "Actualizar correo de notificaciones y teléfono del perfil propio")
+    @Operation(summary = "Actualizar datos del perfil propio")
     public ResponseEntity<?> actualizarPerfil(
             @PathVariable Long id,
             @RequestBody PerfilRequest req
     ) {
         try {
-            Usuario actualizado = usuarioService.actualizarPerfil(id, req.getEmailNotificaciones(), req.getTelefono());
+            Usuario actualizado = usuarioService.actualizarPerfilCompleto(id, req);
             return ResponseEntity.ok(actualizado);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));

@@ -28,4 +28,6 @@ public interface IUsuarioService {
     void desactivar(Long id);
 
     Usuario actualizarPerfil(Long id, String emailNotificaciones, String telefono);
+
+    Usuario actualizarPerfilCompleto(Long id, ec.edu.uteq.presustentaciones.dto.PerfilRequest req);
 }

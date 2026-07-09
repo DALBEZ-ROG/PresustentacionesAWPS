@@ -51,6 +51,9 @@ public class ActaServiceImpl implements ActaService {
     private final SolicitudRepository solicitudRepository;
     private final EvaluacionRepository evaluacionRepository;
     private final JuradoRepository juradoRepository;
+    private final NotificacionService notificacionService;
+    private final ec.edu.uteq.presustentaciones.repositories.TutorRepository tutorRepository;
+    private final ec.edu.uteq.presustentaciones.repositories.UsuarioRepository usuarioRepository;
 
     @Value("${app.actas.dir:uploads/actas}")
     private String actasDir;
@@ -108,6 +111,8 @@ public class ActaServiceImpl implements ActaService {
                 List<Jurado> jurados = juradoRepository.findBySolicitudId(solicitud.getId());
                 generarPdf(actasDir + "/" + acta.getArchivoPdf(), solicitud, evalOpt.orElse(null), jurados, acta);
             }
+            // Notificar a todos los involucrados que el acta esta lista
+            notificarActaCompleta(acta.getSolicitud());
         }
         return acta;
     }
@@ -132,6 +137,40 @@ public class ActaServiceImpl implements ActaService {
 
     @Override public List<Acta> listarActas() { return actaRepository.findAll(); }
     @Override public Optional<Acta> buscarPorSolicitud(Long solicitudId) { return actaRepository.findBySolicitudId(solicitudId); }
+
+    private void notificarActaCompleta(Solicitud solicitud) {
+        try {
+            String titulo = solicitud.getTituloTema();
+            String mensaje = "El acta de pre-sustentacion de \"" + titulo + "\" ha sido firmada por todos los miembros. El proceso esta COMPLETADO.";
+
+            // Notificar al estudiante
+            Long estUsuarioId = solicitud.getEstudiante().getUsuario().getId();
+            notificacionService.crearNotificacion(estUsuarioId, mensaje);
+
+            // Notificar a los jurados (Presidente, Vocal 1, Vocal 2)
+            List<Jurado> jurados = juradoRepository.findBySolicitudId(solicitud.getId());
+            for (Jurado j : jurados) {
+                if (j.getDocente() != null && j.getDocente().getUsuario() != null) {
+                    notificacionService.crearNotificacion(j.getDocente().getUsuario().getId(), mensaje);
+                }
+            }
+
+            // Notificar al tutor
+            tutorRepository.findBySolicitudId(solicitud.getId()).ifPresent(t -> {
+                if (t.getDocente() != null && t.getDocente().getUsuario() != null) {
+                    notificacionService.crearNotificacion(t.getDocente().getUsuario().getId(), mensaje);
+                }
+            });
+
+            // Notificar al coordinador (ADMIN users)
+            usuarioRepository.findByRol("ADMIN").forEach(admin -> {
+                notificacionService.crearNotificacion(admin.getId(), mensaje);
+            });
+
+        } catch (Exception e) {
+            // No interrumpir el flujo si falla la notificacion
+        }
+    }
 
     // ══════════════════════════════════════════════════════════════════════════
     // PDF GENERATION - MODERN GREEN THEME

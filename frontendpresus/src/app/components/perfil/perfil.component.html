@@ -2,7 +2,6 @@
     <div class="page-header">
         <div>
             <h2 class="page-title"><i class="bi bi-person-circle me-2"></i>Mi Perfil</h2>
-            <p class="page-subtitle">Actualiza tu correo y número de teléfono</p>
         </div>
     </div>
 
@@ -12,7 +11,7 @@
 
     <div class="perfil-card" *ngIf="!cargando && usuario">
 
-        <!-- Info de solo lectura -->
+        <!-- Header con avatar -->
         <div class="info-section">
             <div class="avatar-grande">
                 <i class="bi bi-person-fill"></i>
@@ -20,56 +19,111 @@
             <div class="info-datos">
                 <h3 class="nombre-completo">{{ usuario.nombre }} {{ usuario.apellido }}</h3>
                 <span class="rol-badge">{{ rolLabel }}</span>
-                <p class="email-login"><i class="bi bi-lock-fill me-1"></i>{{ usuario.email }} <span class="email-login-tag">correo de acceso</span></p>
             </div>
+            <button class="btn-editar-perfil" *ngIf="!modoEdicion" (click)="activarEdicion()">
+                <i class="bi bi-pencil-fill me-1"></i> Editar
+            </button>
         </div>
 
         <hr class="separador">
 
-        <!-- Campos editables -->
-        <div class="form-section">
+        <!-- MODO LECTURA -->
+        <div class="lectura-section" *ngIf="!modoEdicion">
+            <div class="campos-grid">
+                <div class="campo-lectura">
+                    <span class="campo-label-ro"><i class="bi bi-person me-1"></i>Nombre</span>
+                    <span class="campo-valor">{{ usuario.nombre }}</span>
+                </div>
+                <div class="campo-lectura">
+                    <span class="campo-label-ro"><i class="bi bi-person me-1"></i>Apellido</span>
+                    <span class="campo-valor">{{ usuario.apellido }}</span>
+                </div>
+            </div>
+            <div class="campo-lectura">
+                <span class="campo-label-ro"><i class="bi bi-envelope me-1"></i>Correo de acceso</span>
+                <span class="campo-valor">{{ usuario.email }}</span>
+            </div>
+            <div class="campo-lectura">
+                <span class="campo-label-ro"><i class="bi bi-envelope-fill me-1"></i>Correo para notificaciones</span>
+                <span class="campo-valor" *ngIf="emailNotificaciones">{{ emailNotificaciones }}</span>
+                <span class="campo-valor sin-dato" *ngIf="!emailNotificaciones">No configurado</span>
+            </div>
+            <div class="campo-lectura">
+                <span class="campo-label-ro"><i class="bi bi-telephone-fill me-1"></i>Telefono</span>
+                <span class="campo-valor" *ngIf="telefono">{{ telefono }}</span>
+                <span class="campo-valor sin-dato" *ngIf="!telefono">No configurado</span>
+            </div>
+        </div>
+
+        <!-- MODO EDICION -->
+        <div class="form-section" *ngIf="modoEdicion">
+            <div class="campos-grid">
+                <div class="campo-grupo">
+                    <label class="campo-label"><i class="bi bi-person me-1"></i> Nombre</label>
+                    <input type="text" class="campo-input" [(ngModel)]="nombre" placeholder="Nombre">
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label"><i class="bi bi-person me-1"></i> Apellido</label>
+                    <input type="text" class="campo-input" [(ngModel)]="apellido" placeholder="Apellido">
+                </div>
+            </div>
 
             <div class="campo-grupo">
-                <label class="campo-label">
-                    <i class="bi bi-envelope-fill me-1"></i> Correo para notificaciones
-                </label>
-                <input
-                        type="email"
-                        class="campo-input"
-                        [class.error]="emailInvalido"
-                        [(ngModel)]="emailNotificaciones"
-                        (blur)="validarEmail()"
-                        placeholder="ejemplo@correo.com"
-                />
+                <label class="campo-label"><i class="bi bi-envelope me-1"></i> Correo de acceso</label>
+                <input type="email" class="campo-input" [(ngModel)]="email" placeholder="correo@uteq.edu.ec">
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-label"><i class="bi bi-envelope-fill me-1"></i> Correo para notificaciones</label>
+                <input type="email" class="campo-input" [class.error]="emailInvalido"
+                       [(ngModel)]="emailNotificaciones" (blur)="validarEmail()"
+                       placeholder="correo@gmail.com" />
                 <span class="campo-error" *ngIf="emailInvalido">
-          <i class="bi bi-exclamation-circle me-1"></i>Ingresa un correo válido
-        </span>
-                <span class="campo-hint">
-          <i class="bi bi-info-circle me-1"></i>
-          A este correo llegarán los avisos del sistema. Puede ser distinto al correo con el que inicias sesión.
-        </span>
+                    <i class="bi bi-exclamation-circle me-1"></i>Ingresa un correo valido
+                </span>
             </div>
 
             <div class="campo-grupo">
-                <label class="campo-label">
-                    <i class="bi bi-telephone-fill me-1"></i> Número de teléfono
-                </label>
-                <input
-                        type="tel"
-                        class="campo-input"
-                        [(ngModel)]="telefono"
-                        placeholder="Ej: 0991234567"
-                        maxlength="15"
-                />
+                <label class="campo-label"><i class="bi bi-telephone-fill me-1"></i> Telefono</label>
+                <input type="tel" class="campo-input" [(ngModel)]="telefono"
+                       placeholder="Ej: 0991234567" maxlength="15" />
             </div>
+
+            <!-- Seccion de contrasena -->
+            <hr class="separador">
+            <p class="seccion-label"><i class="bi bi-shield-lock me-1"></i> Cambiar contrasena <small>(opcional)</small></p>
+
+            <div class="campo-grupo">
+                <label class="campo-label">Contrasena actual</label>
+                <input type="password" class="campo-input" [(ngModel)]="passwordActual"
+                       placeholder="Ingresa tu contrasena actual" />
+            </div>
+            <div class="campos-grid">
+                <div class="campo-grupo">
+                    <label class="campo-label">Nueva contrasena</label>
+                    <input type="password" class="campo-input" [(ngModel)]="passwordNueva"
+                           placeholder="Minimo 4 caracteres" />
+                </div>
+                <div class="campo-grupo">
+                    <label class="campo-label">Confirmar contrasena</label>
+                    <input type="password" class="campo-input" [(ngModel)]="passwordConfirm"
+                           placeholder="Repite la nueva contrasena"
+                           [class.error]="passwordConfirm && passwordNueva !== passwordConfirm" />
+                </div>
+            </div>
+            <span class="campo-error" *ngIf="passwordConfirm && passwordNueva !== passwordConfirm">
+                <i class="bi bi-exclamation-circle me-1"></i>Las contrasenas no coinciden
+            </span>
 
             <div class="form-actions">
+                <button class="btn-cancelar" (click)="cancelarEdicion()">
+                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                </button>
                 <button class="btn-guardar" (click)="guardar()" [disabled]="guardando">
-                    <span *ngIf="!guardando"><i class="bi bi-floppy me-1"></i> Guardar cambios</span>
+                    <span *ngIf="!guardando"><i class="bi bi-check-circle-fill me-1"></i> Guardar</span>
                     <span *ngIf="guardando"><i class="bi bi-arrow-repeat me-1 spin"></i> Guardando...</span>
                 </button>
             </div>
         </div>
-
     </div>
 </div>

@@ -161,7 +161,7 @@
                             </button>
                         </ng-container>
 
-                        <!-- CALIFICADA → PDF, Tribunal (lectura), Acta, Observaciones -->
+                        <!-- CALIFICADA → PDF, Tribunal (lectura), Acta (descarga directa) -->
                         <ng-container *ngIf="s.estado==='CALIFICADA'">
                             <button class="btn-accion btn-ver-pdf"
                                     [routerLink]="['/dashboard/docente/anteproyecto', s.id]">
@@ -173,12 +173,8 @@
                                 <i class="bi bi-people-fill"></i> Tribunal
                             </button>
                             <button class="btn-accion btn-evaluar"
-                                    [routerLink]="['/dashboard/admin/evaluar', s.id]">
+                                    (click)="descargarActaSolicitud(s.id)">
                                 <i class="bi bi-file-earmark-check"></i> Acta
-                            </button>
-                            <button class="btn-accion btn-programar"
-                                    (click)="verObservacionesCompletas(s)">
-                                <i class="bi bi-chat-left-text"></i> Observaciones
                             </button>
                         </ng-container>
 

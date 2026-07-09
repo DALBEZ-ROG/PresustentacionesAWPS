@@ -1,9 +1,11 @@
 package ec.edu.uteq.presustentaciones.services;
 
+import ec.edu.uteq.presustentaciones.dto.PerfilRequest;
 import ec.edu.uteq.presustentaciones.entities.Usuario;
 import ec.edu.uteq.presustentaciones.repositories.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,7 @@ import java.util.Optional;
 public class UsuarioServiceImpl implements IUsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Usuario crear(Usuario usuario) {
@@ -115,5 +118,51 @@ public class UsuarioServiceImpl implements IUsuarioService {
         }
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+    }
+
+    @Override
+    @Transactional
+    public Usuario actualizarPerfilCompleto(Long id, ec.edu.uteq.presustentaciones.dto.PerfilRequest req) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+
+        if (req.getNombre() != null && !req.getNombre().isBlank()) {
+            usuario.setNombre(req.getNombre().trim());
+        }
+        if (req.getApellido() != null && !req.getApellido().isBlank()) {
+            usuario.setApellido(req.getApellido().trim());
+        }
+        if (req.getEmail() != null && !req.getEmail().isBlank()) {
+            String nuevoEmail = req.getEmail().trim();
+            // Validar que no exista otro usuario con ese email
+            if (!nuevoEmail.equals(usuario.getEmail())) {
+                if (usuarioRepository.existsByEmail(nuevoEmail)) {
+                    throw new RuntimeException("El correo '" + nuevoEmail + "' ya esta registrado por otro usuario.");
+                }
+            }
+            usuario.setEmail(nuevoEmail);
+        }
+        if (req.getEmailNotificaciones() != null) {
+            usuario.setEmailNotificaciones(req.getEmailNotificaciones().trim());
+        }
+        if (req.getTelefono() != null) {
+            usuario.setTelefono(req.getTelefono().trim());
+        }
+
+        // Cambio de contrasena
+        if (req.getPasswordNueva() != null && !req.getPasswordNueva().isBlank()) {
+            if (req.getPasswordActual() == null || req.getPasswordActual().isBlank()) {
+                throw new RuntimeException("Debes ingresar tu contrasena actual para cambiarla.");
+            }
+            if (!passwordEncoder.matches(req.getPasswordActual(), usuario.getPassword())) {
+                throw new RuntimeException("La contrasena actual es incorrecta.");
+            }
+            if (req.getPasswordNueva().length() < 4) {
+                throw new RuntimeException("La nueva contrasena debe tener al menos 4 caracteres.");
+            }
+            usuario.setPassword(passwordEncoder.encode(req.getPasswordNueva()));
+        }
+
+        return usuarioRepository.save(usuario);
     }
 }

@@ -7,6 +7,7 @@ import { SolicitudService } from '../../../services/solicitud.service';
 import { NotificationService } from '../../../services/notification.service';
 import { JuryEvaluationService } from '../../../services/jury-evaluation.service';
 import { EvaluacionService } from '../../../services/evaluacion.service';
+import { ActaService } from '../../../services/acta.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -41,6 +42,7 @@ export class RevisarSolicitudesComponent implements OnInit {
         private reporteService: ReporteService,
         private juryEvalService: JuryEvaluationService,
         private evaluacionService: EvaluacionService,
+        private actaService: ActaService,
         private cdr: ChangeDetectorRef
     ) {}
 
@@ -268,5 +270,31 @@ export class RevisarSolicitudesComponent implements OnInit {
     private formatRolLabel(rol: string): string {
         const map: Record<string,string> = { PRESIDENTE:'Presidente', VOCAL_1:'Vocal 1', VOCAL_2:'Vocal 2', TUTOR:'Tutor' };
         return map[rol] || rol;
+    }
+
+    descargarActaSolicitud(solicitudId: number): void {
+        this.actaService.porSolicitud(solicitudId).subscribe({
+            next: (acta: any) => {
+                if (acta && acta.id) {
+                    this.actaService.descargarPdf(acta.id).subscribe({
+                        next: (blob) => {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            const sol = this.solicitudes.find(s => s.id === solicitudId);
+                            const nombre = sol?.estudiante?.usuario?.nombre || '';
+                            const apellido = sol?.estudiante?.usuario?.apellido || '';
+                            a.href = url;
+                            a.download = `Acta_PreSustentacion_${nombre}_${apellido}.pdf`.replace(/ /g, '_');
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        },
+                        error: () => this.notification.error('No se pudo descargar el PDF del acta.', 'Error')
+                    });
+                } else {
+                    this.notification.error('No hay acta generada para esta solicitud. Ingrese a Evaluar para generarla.', 'Sin acta');
+                }
+            },
+            error: () => this.notification.error('No se encontro el acta.', 'Error')
+        });
     }
 }

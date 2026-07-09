@@ -15,11 +15,18 @@ import { NotificationService } from '../../services/notification.service';
 })
 export class PerfilComponent implements OnInit {
     usuario: any = null;
+    nombre = '';
+    apellido = '';
+    email = '';
     emailNotificaciones = '';
     telefono = '';
+    passwordActual = '';
+    passwordNueva = '';
+    passwordConfirm = '';
     guardando = false;
     cargando = true;
     emailInvalido = false;
+    modoEdicion = false;
 
     private apiUrl = 'http://localhost:8080/api/usuarios';
 
@@ -40,6 +47,9 @@ export class PerfilComponent implements OnInit {
         this.http.get<any>(`${this.apiUrl}/${id}`).subscribe({
             next: (u) => {
                 this.usuario = u;
+                this.nombre = u.nombre || '';
+                this.apellido = u.apellido || '';
+                this.email = u.email || '';
                 this.emailNotificaciones = u.emailNotificaciones || '';
                 this.telefono = u.telefono || '';
                 this.cargando = false;
@@ -65,16 +75,47 @@ export class PerfilComponent implements OnInit {
             this.notification.error('Ingresa un correo electrónico válido.', 'Correo inválido');
             return;
         }
+        if (this.passwordNueva && this.passwordNueva !== this.passwordConfirm) {
+            this.notification.error('Las contrasenas no coinciden.', 'Error');
+            return;
+        }
+        if (this.passwordNueva && !this.passwordActual) {
+            this.notification.error('Ingresa tu contrasena actual para poder cambiarla.', 'Error');
+            return;
+        }
+
         this.guardando = true;
         const id = this.authService.getUserId();
-        this.http.patch(`${this.apiUrl}/${id}/perfil`, {
+        const emailCambio = this.email !== this.usuario.email;
+
+        const body: any = {
+            nombre: this.nombre,
+            apellido: this.apellido,
+            email: this.email,
             emailNotificaciones: this.emailNotificaciones,
             telefono: this.telefono
-        }).subscribe({
-            next: () => {
+        };
+        if (this.passwordNueva) {
+            body.passwordActual = this.passwordActual;
+            body.passwordNueva = this.passwordNueva;
+        }
+
+        this.http.patch(`${this.apiUrl}/${id}/perfil`, body).subscribe({
+            next: (u: any) => {
+                this.usuario = u;
                 this.authService.marcarEmailNotiConfigurado();
-                this.notification.success('Perfil actualizado. Las notificaciones llegarán a: ' + this.emailNotificaciones, '✓ Guardado');
                 this.guardando = false;
+                this.modoEdicion = false;
+                this.passwordActual = '';
+                this.passwordNueva = '';
+                this.passwordConfirm = '';
+
+                if (emailCambio || this.passwordNueva) {
+                    this.notification.success('Perfil actualizado. Se cerrara la sesion para aplicar los cambios de seguridad.', '✓ Guardado');
+                    setTimeout(() => { this.authService.logout(); }, 2000);
+                } else {
+                    this.notification.success('Perfil actualizado correctamente.', '✓ Guardado');
+                }
                 this.cdr.markForCheck();
             },
             error: (err) => {
@@ -84,6 +125,23 @@ export class PerfilComponent implements OnInit {
                 this.cdr.markForCheck();
             }
         });
+    }
+
+    activarEdicion(): void {
+        this.modoEdicion = true;
+    }
+
+    cancelarEdicion(): void {
+        this.modoEdicion = false;
+        this.nombre = this.usuario?.nombre || '';
+        this.apellido = this.usuario?.apellido || '';
+        this.email = this.usuario?.email || '';
+        this.emailNotificaciones = this.usuario?.emailNotificaciones || '';
+        this.telefono = this.usuario?.telefono || '';
+        this.passwordActual = '';
+        this.passwordNueva = '';
+        this.passwordConfirm = '';
+        this.emailInvalido = false;
     }
 
     get rolLabel(): string {

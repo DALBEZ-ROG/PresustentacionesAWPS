@@ -136,7 +136,12 @@ export class FirmarActaDocenteComponent implements OnInit {
                 }
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url; a.download = `acta_solicitud_${this.solicitudId}.pdf`; a.click();
+                const nombre = this.solicitud?.estudiante?.usuario?.nombre || '';
+                const apellido = this.solicitud?.estudiante?.usuario?.apellido || '';
+                const carrera = this.solicitud?.estudiante?.carrera || '';
+                a.href = url;
+                a.download = `Acta_PreSustentacion_${nombre}_${apellido}_${carrera}.pdf`.replace(/ /g, '_');
+                a.click();
                 URL.revokeObjectURL(url);
             },
             error: () => this.notification.error('El archivo PDF no está disponible. Regenere el acta.', 'Error')
