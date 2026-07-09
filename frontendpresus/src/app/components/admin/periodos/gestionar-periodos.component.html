@@ -1,0 +1,107 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h2 class="page-title"><i class="bi bi-calendar-range me-2"></i>Periodos de Pre-Sustentación</h2>
+    </div>
+    <button class="btn-back" routerLink="/dashboard">
+      <i class="bi bi-arrow-left"></i> Volver
+    </button>
+  </div>
+
+  <div class="periodos-layout">
+
+    <!-- ── Formulario ──────────────────────────────────────────────── -->
+    <div class="card-panel form-panel">
+      <div class="card-panel-header">
+        <i class="bi" [class.bi-plus-circle-fill]="!modoEdicion" [class.bi-pencil-fill]="modoEdicion"></i>
+        <h3>{{ modoEdicion ? 'Editar Periodo' : 'Nuevo Periodo' }}</h3>
+      </div>
+
+      <!-- Si ya hay un periodo y no estamos editando, no mostrar formulario -->
+      <div class="ya-existe" *ngIf="periodos.length > 0 && !modoEdicion">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>Ya existe un periodo configurado. Puedes editarlo o eliminarlo para crear uno nuevo.</span>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="periodo-form" *ngIf="periodos.length === 0 || modoEdicion">
+
+        <!-- Preview automático del nombre -->
+        <div class="preview-card" *ngIf="previewNombre">
+          <div class="preview-badge" [class.ppa]="previewTipo === 'PPA'" [class.spa]="previewTipo === 'SPA'">
+            {{ previewTipo }}
+          </div>
+          <span class="preview-nombre">{{ previewNombre }}</span>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label"><i class="bi bi-calendar-event me-1"></i>Fecha Inicio</label>
+            <input type="date" formControlName="fechaInicio" class="input-field" [min]="hoy">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="bi bi-calendar-check me-1"></i>Fecha Fin</label>
+            <input type="date" formControlName="fechaFin" class="input-field" [min]="form.get('fechaInicio')?.value || hoy">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancelar" *ngIf="modoEdicion" (click)="cancelarEdicion()">
+            <i class="bi bi-x-circle me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn-guardar" [disabled]="form.invalid || enviando">
+            <i class="bi" [class.bi-check-circle-fill]="!enviando" [class.bi-arrow-clockwise]="enviando" [class.spin]="enviando"></i>
+            {{ enviando ? 'Guardando...' : (modoEdicion ? 'Actualizar Periodo' : 'Crear Periodo') }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ── Lista de periodos ───────────────────────────────────────── -->
+    <div class="card-panel lista-panel">
+      <div class="card-panel-header">
+        <i class="bi bi-collection-fill"></i>
+        <h3>Periodos Configurados</h3>
+      </div>
+
+      <div class="loading-sm" *ngIf="cargando"><div class="spinner-sm"></div></div>
+
+      <div class="periodos-lista" *ngIf="!cargando">
+        <div class="periodo-item" *ngFor="let p of periodos" [class.activo]="p.activo">
+          <div class="periodo-left">
+            <div class="periodo-tipo" [class.ppa]="p.tipo === 'PPA'" [class.spa]="p.tipo === 'SPA'">
+              {{ p.tipo }}
+            </div>
+            <div class="periodo-datos">
+              <span class="periodo-nombre">{{ p.nombre }}</span>
+              <span class="periodo-rango">
+                <i class="bi bi-calendar3 me-1"></i>{{ p.fechaInicio }} → {{ p.fechaFin }}
+              </span>
+            </div>
+          </div>
+          <div class="periodo-right">
+            <span class="estado-activo" *ngIf="p.activo">
+              <i class="bi bi-check-circle-fill"></i> Activo
+            </span>
+            <div class="periodo-btns">
+              <button class="pbtn pbtn-activar" *ngIf="!p.activo" (click)="activar(p.id)" title="Activar">
+                <i class="bi bi-power"></i>
+              </button>
+              <button class="pbtn pbtn-editar" (click)="editar(p)" title="Editar fechas">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="pbtn pbtn-eliminar" (click)="eliminar(p.id)" title="Eliminar">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="periodos.length === 0">
+          <i class="bi bi-calendar-x"></i>
+          <p>No hay periodos configurados</p>
+          <small>Crea un periodo para restringir las fechas de programación de las pre-sustentaciones.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

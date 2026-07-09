@@ -16,6 +16,9 @@ public interface ActaService {
     /** Retorna el path del PDF generado para descarga */
     byte[] obtenerPdfBytes(Long actaId);
 
+    /** Retorna el nombre descriptivo del archivo PDF */
+    String obtenerNombreArchivo(Long actaId);
+
     List<Acta> listarActas();
     Optional<Acta> buscarPorSolicitud(Long solicitudId);
 }

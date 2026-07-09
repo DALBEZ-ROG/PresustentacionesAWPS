@@ -396,6 +396,44 @@ body.dark-mode .banner-tutoria-ok {
     color: #3fb950 !important;
 }
 
+/* ── Banner tribunal ya asignado (modo edición) ──────────────────── */
+.banner-edicion {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 1px solid #f0c674;
+    border-left: 4px solid #e67e22;
+    color: #856404;
+    line-height: 1.5;
+}
+.banner-edicion i {
+    font-size: 1.2rem;
+    color: #e67e22;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+.banner-edicion strong {
+    display: block;
+    margin-bottom: 2px;
+    color: #6c3a00;
+}
+body.dark-mode .banner-edicion {
+    background: #2a1f00 !important;
+    border-color: #cc9900 !important;
+    color: #ffd700 !important;
+}
+body.dark-mode .banner-edicion strong {
+    color: #ffcc00 !important;
+}
+body.dark-mode .banner-edicion i {
+    color: #ffcc00 !important;
+}
+
 /* ── Asignar jurados — reglas específicas ───────────────────────── */
 body.dark-mode .asig-card        { background: #161b22 !important; border-color: #30363d !important; }
 body.dark-mode .jurado-item      { background: #0d1117 !important; border-color: #30363d !important; }

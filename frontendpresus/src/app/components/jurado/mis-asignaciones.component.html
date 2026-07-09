@@ -2,7 +2,6 @@
   <div class="page-header">
     <div>
       <h2 class="page-title"><i class="bi bi-person-badge me-2"></i>Mis Asignaciones</h2>
-      <p class="page-subtitle">Pre-sustentaciones donde eres jurado o tutor</p>
     </div>
   </div>
 
@@ -24,45 +23,41 @@
 
       <div class="cards-grid" *ngIf="asignaciones.length > 0">
         <div class="asig-card" *ngFor="let a of asignaciones">
-          <div class="card-top">
-            <span class="rol-badge" [ngClass]="getRolColor(a.rol)">{{ getRolLabel(a.rol) }}</span>
-            <span class="estado-badge" [ngClass]="getEstadoBadge(a.solicitud?.estado)">{{ a.solicitud?.estado }}</span>
-          </div>
-          <p class="titulo-tema">{{ getTitulo(a) }}</p>
-          <p class="estudiante-nombre"><i class="bi bi-mortarboard me-1"></i>{{ getNombreEstudiante(a) }}</p>
+          <div class="card-header-strip" [ngClass]="getRolColor(a.rol)"></div>
+          <div class="card-body-content">
+            <div class="card-top">
+              <span class="rol-badge" [ngClass]="getRolColor(a.rol)">{{ getRolLabel(a.rol) }}</span>
+              <span class="estado-badge" [ngClass]="getEstadoBadge(a.solicitud?.estado)">{{ a.solicitud?.estado }}</span>
+            </div>
+            <h4 class="titulo-tema">{{ getTitulo(a) }}</h4>
+            <p class="estudiante-nombre"><i class="bi bi-mortarboard me-1"></i>{{ getNombreEstudiante(a) }}</p>
 
-          <!-- Alerta de suspensión -->
-          <div class="alerta-suspension-card" *ngIf="estaSuspendida(a.solicitud)">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <span>{{ obtenerMotivoSuspension(a.solicitud) }}</span>
-          </div>
+            <!-- Alerta de suspensión -->
+            <div class="alerta-suspension-card" *ngIf="estaSuspendida(a.solicitud)">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>{{ obtenerMotivoSuspension(a.solicitud) }}</span>
+            </div>
 
-          <div class="card-actions">
-            <!-- Ver PDF - siempre habilitado -->
-            <a class="btn-card btn-ver"
-               [routerLink]="['/dashboard/docente/anteproyecto', a.solicitud?.id]">
-              <i class="bi bi-file-earmark-pdf"></i> Ver PDF
-            </a>
-
-            <!-- Evaluar - deshabilitado si ya evaluó o está suspendida -->
-            <a class="btn-card btn-evaluar"
-               [class.btn-disabled]="yaEvaluada(a.solicitud?.id) || estaSuspendida(a.solicitud)"
-               [routerLink]="(yaEvaluada(a.solicitud?.id) || estaSuspendida(a.solicitud)) ? null : ['/dashboard/jurado/evaluar-rubrica', a.solicitud?.id]"
-               [title]="yaEvaluada(a.solicitud?.id) ? 'La evaluación final ya fue registrada' : (estaSuspendida(a.solicitud) ? 'Solicitud suspendida' : 'Evaluar rúbrica')"
-               (click)="verificarSuspension(a.solicitud) && $event.preventDefault()">
-              <i class="bi" [class.bi-check-circle-fill]="yaEvaluada(a.solicitud?.id)"
-                            [class.bi-star-half]="!yaEvaluada(a.solicitud?.id)"></i>
-              {{ yaEvaluada(a.solicitud?.id) ? 'Evaluado' : 'Evaluar' }}
-            </a>
-
-            <!-- Firmar Acta - deshabilitado si está suspendida -->
-            <a class="btn-card btn-firmar"
-               [class.btn-disabled]="estaSuspendida(a.solicitud)"
-               [routerLink]="estaSuspendida(a.solicitud) ? null : ['/dashboard/docente/firmar-acta', a.solicitud?.id]"
-               [title]="estaSuspendida(a.solicitud) ? 'Solicitud suspendida' : 'Firmar Acta'"
-               (click)="verificarSuspension(a.solicitud) && $event.preventDefault()">
-              <i class="bi bi-pen-fill"></i> Firmar Acta
-            </a>
+            <div class="card-actions">
+              <a class="btn-card btn-ver"
+                 [routerLink]="['/dashboard/docente/anteproyecto', a.solicitud?.id]">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Ver PDF
+              </a>
+              <a class="btn-card btn-evaluar"
+                 [class.btn-disabled]="yaEvaluada(a.solicitud?.id) || estaSuspendida(a.solicitud)"
+                 [routerLink]="(yaEvaluada(a.solicitud?.id) || estaSuspendida(a.solicitud)) ? null : ['/dashboard/jurado/evaluar-rubrica', a.solicitud?.id]"
+                 (click)="verificarSuspension(a.solicitud) && $event.preventDefault()">
+                <i class="bi" [class.bi-check-circle-fill]="yaEvaluada(a.solicitud?.id)"
+                              [class.bi-star-fill]="!yaEvaluada(a.solicitud?.id)"></i>
+                {{ yaEvaluada(a.solicitud?.id) ? 'Evaluado' : 'Evaluar' }}
+              </a>
+              <a class="btn-card btn-firmar"
+                 [class.btn-disabled]="estaSuspendida(a.solicitud)"
+                 [routerLink]="estaSuspendida(a.solicitud) ? null : ['/dashboard/docente/firmar-acta', a.solicitud?.id]"
+                 (click)="verificarSuspension(a.solicitud) && $event.preventDefault()">
+                <i class="bi bi-pen-fill"></i> Firmar Acta
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -72,7 +67,7 @@
     <div class="seccion mt-4">
       <h3 class="seccion-titulo">
         <i class="bi bi-person-check-fill me-2"></i>Como Tutor del Proyecto
-        <span class="seccion-count">{{ asignacionesTutor.length }}</span>
+        <span class="seccion-count tutor-count">{{ asignacionesTutor.length }}</span>
       </h3>
 
       <div class="empty-state" *ngIf="asignacionesTutor.length === 0">
@@ -82,37 +77,35 @@
 
       <div class="cards-grid" *ngIf="asignacionesTutor.length > 0">
         <div class="asig-card tutor-card" *ngFor="let t of asignacionesTutor">
-          <div class="card-top">
-            <span class="rol-badge rol-tutor">Tutor</span>
-            <span class="estado-badge" [ngClass]="getEstadoBadge(t.solicitud?.estado)">{{ t.solicitud?.estado }}</span>
-          </div>
-          <p class="titulo-tema">{{ t.solicitud?.tituloTema }}</p>
-          <p class="estudiante-nombre">
-            <i class="bi bi-mortarboard me-1"></i>
-            {{ t.solicitud?.estudiante?.usuario?.nombre }} {{ t.solicitud?.estudiante?.usuario?.apellido }}
-          </p>
+          <div class="card-header-strip strip-tutor"></div>
+          <div class="card-body-content">
+            <div class="card-top">
+              <span class="rol-badge rol-tutor">Tutor Director</span>
+              <span class="estado-badge" [ngClass]="getEstadoBadge(t.solicitud?.estado)">{{ t.solicitud?.estado }}</span>
+            </div>
+            <h4 class="titulo-tema">{{ t.solicitud?.tituloTema }}</h4>
+            <p class="estudiante-nombre">
+              <i class="bi bi-mortarboard me-1"></i>
+              {{ t.solicitud?.estudiante?.usuario?.nombre }} {{ t.solicitud?.estudiante?.usuario?.apellido }}
+            </p>
 
-          <!-- Alerta de suspensión -->
-          <div class="alerta-suspension-card" *ngIf="estaSuspendida(t.solicitud)">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <span>{{ obtenerMotivoSuspension(t.solicitud) }}</span>
-          </div>
+            <div class="alerta-suspension-card" *ngIf="estaSuspendida(t.solicitud)">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>{{ obtenerMotivoSuspension(t.solicitud) }}</span>
+            </div>
 
-          <div class="card-actions">
-            <!-- Ver PDF - siempre habilitado -->
-            <a class="btn-card btn-ver"
-               [routerLink]="['/dashboard/docente/anteproyecto', t.solicitud?.id]">
-              <i class="bi bi-file-earmark-pdf"></i> Ver PDF
-            </a>
-
-            <!-- Firmar Acta - deshabilitado si está suspendida -->
-            <a class="btn-card btn-firmar"
-               [class.btn-disabled]="estaSuspendida(t.solicitud)"
-               [routerLink]="estaSuspendida(t.solicitud) ? null : ['/dashboard/docente/firmar-acta', t.solicitud?.id]"
-               [title]="estaSuspendida(t.solicitud) ? 'Solicitud suspendida' : 'Firmar Acta'"
-               (click)="verificarSuspension(t.solicitud) && $event.preventDefault()">
-              <i class="bi bi-pen-fill"></i> Firmar Acta
-            </a>
+            <div class="card-actions">
+              <a class="btn-card btn-ver"
+                 [routerLink]="['/dashboard/docente/anteproyecto', t.solicitud?.id]">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Ver PDF
+              </a>
+              <a class="btn-card btn-firmar"
+                 [class.btn-disabled]="estaSuspendida(t.solicitud)"
+                 [routerLink]="estaSuspendida(t.solicitud) ? null : ['/dashboard/docente/firmar-acta', t.solicitud?.id]"
+                 (click)="verificarSuspension(t.solicitud) && $event.preventDefault()">
+                <i class="bi bi-pen-fill"></i> Firmar Acta
+              </a>
+            </div>
           </div>
         </div>
       </div>

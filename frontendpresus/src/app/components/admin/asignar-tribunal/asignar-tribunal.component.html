@@ -11,6 +11,15 @@
     </button>
   </div>
 
+  <!-- Aviso de tribunal ya asignado (modo edición) -->
+  <div class="alerta-edicion" *ngIf="!cargando && jurados.length > 0">
+    <i class="bi bi-info-circle-fill"></i>
+    <div>
+      <strong>Tribunal ya asignado.</strong>
+      <span>Estás en modo edición. Puedes modificar los miembros del tribunal si es necesario (cambio de jurado, indisponibilidad, etc.).</span>
+    </div>
+  </div>
+
   <div class="grid-layout">
 
     <!-- ── Panel izquierdo: Formularios ───────────────────────── -->

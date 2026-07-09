@@ -20,7 +20,7 @@
     <div class="resumen-bar" [class.completo]="tribunalCompleto">
       <div class="rb-item">
         <span class="rb-label">Jurados evaluados</span>
-        <span class="rb-val">{{ evaluadosCount }} / {{ evaluaciones.length }}</span>
+        <span class="rb-val">{{ evaluadosCount }} / {{ totalJurados }}</span>
       </div>
       <div class="rb-sep"></div>
       <div class="rb-item">
@@ -37,16 +37,44 @@
     </div>
 
     <!-- Sin evaluaciones -->
-    <div class="empty-state" *ngIf="evaluaciones.length === 0">
+    <div class="empty-state" *ngIf="totalJurados === 0">
       <i class="bi bi-inbox"></i>
-      <p>No hay jurados asignados o aún no han evaluado.</p>
+      <p>No hay jurados asignados o no han evaluado.</p>
     </div>
 
-    <!-- Tarjeta por cada jurado -->
+    <!-- ═══ Evaluaciones directas (nota + observacion) ═══ -->
+    <ng-container *ngIf="usandoNotaDirecta">
+      <div class="jurado-card" *ngFor="let ev of evaluacionesJurado">
+        <div class="jc-header">
+          <div class="jc-info">
+            <span class="jc-rol">{{ formatRol(ev.rolJurado) }}</span>
+            <span class="jc-nombre">{{ ev.nombreJurado }}</span>
+          </div>
+          <div class="jc-nota-total" *ngIf="ev.notaJurado"
+               [class.aprobado]="ev.notaJurado >= 7"
+               [class.reprobado]="ev.notaJurado < 7">
+            <span class="jcn-num">{{ ev.notaJurado.toFixed(2) }}</span>
+            <span class="jcn-denom">/ 10</span>
+          </div>
+          <div class="jc-pendiente" *ngIf="!ev.notaJurado">
+            <i class="bi bi-clock me-1"></i>Pendiente
+          </div>
+        </div>
+        <div class="jc-obs" *ngIf="ev.observaciones">
+          <i class="bi bi-chat-left-text me-2"></i>{{ ev.observaciones }}
+        </div>
+        <div class="jc-obs pending" *ngIf="!ev.notaJurado">
+          <i class="bi bi-hourglass-split me-2"></i>Este jurado aun no ha registrado su evaluacion.
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ═══ Evaluaciones con rubrica detallada ═══ -->
+    <ng-container *ngIf="!usandoNotaDirecta">
     <div class="jurado-card" *ngFor="let ev of evaluaciones">
       <div class="jc-header">
         <div class="jc-info">
-          <span class="jc-rol">{{ ev.rolJurado }}</span>
+          <span class="jc-rol">{{ formatRol(ev.rolJurado) }}</span>
           <span class="jc-nombre">{{ ev.nombreJurado }}</span>
         </div>
         <div class="jc-nota-total" *ngIf="ev.notaTotalJurado !== null"
@@ -87,9 +115,10 @@
       </div>
 
       <div class="jc-obs" *ngIf="!ev.detalles || ev.detalles.length === 0">
-        <i class="bi bi-hourglass-split me-2"></i>Este jurado aún no ha registrado su evaluación.
+        <i class="bi bi-hourglass-split me-2"></i>Este jurado aun no ha registrado su evaluacion.
       </div>
     </div>
+    </ng-container>
 
   </ng-container>
 </div>

@@ -63,9 +63,13 @@ public class JuradoController {
 
     /** Eliminar un jurado */
     @DeleteMapping("/{juradoId}")
-    public ResponseEntity<Void> eliminarJurado(@PathVariable Long juradoId) {
-        juradoService.eliminarJurado(juradoId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> eliminarJurado(@PathVariable Long juradoId) {
+        try {
+            juradoService.eliminarJurado(juradoId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
     }
 
     /** Sugerir docentes disponibles para asignar (sin los ya asignados) */

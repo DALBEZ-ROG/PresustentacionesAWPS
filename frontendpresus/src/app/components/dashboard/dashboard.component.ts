@@ -41,6 +41,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     modulosAdmin = [
         { titulo: 'Gestionar Solicitudes', icon: 'bi-clipboard2-check', image: 'img/MisTramites.png', route: '/dashboard/admin/revisar-solicitudes',
             desc: 'Aprobar, rechazar y hacer seguimiento de todas las solicitudes' },
+        { titulo: 'Periodos Académicos',   icon: 'bi-calendar-range',   image: 'img/MisNotas.png',    route: '/dashboard/admin/periodos',
+            desc: 'Configurar el rango de fechas para programar pre-sustentaciones' },
         { titulo: 'Notificaciones',        icon: 'bi-bell',             image: 'img/MisNotas.png',    route: '/dashboard/notificaciones',
             desc: 'Mensajes y alertas del sistema' },
     ];
@@ -67,6 +69,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         '/dashboard/admin/cronograma':            'Programar Presentación',
         '/dashboard/admin/asignar-jurados':      'Asignar Tribunal y Tutor',
         '/dashboard/admin/evaluar':              'Registrar Evaluación',
+        '/dashboard/admin/periodos':              'Periodos Académicos',
         '/dashboard/jurado/mis-asignaciones':    'Mis Asignaciones como Jurado',
         '/dashboard/docente/anteproyecto':       'Ver Anteproyecto',
         '/dashboard/docente/firmar-acta':        'Firmar Acta',

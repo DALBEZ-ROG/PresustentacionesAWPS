@@ -2,11 +2,13 @@ package ec.edu.uteq.presustentaciones.services;
 
 import ec.edu.uteq.presustentaciones.entities.Cronograma;
 import ec.edu.uteq.presustentaciones.entities.Jurado;
+import ec.edu.uteq.presustentaciones.entities.PeriodoAcademico;
 import ec.edu.uteq.presustentaciones.entities.Sala;
 import ec.edu.uteq.presustentaciones.entities.Solicitud;
 import ec.edu.uteq.presustentaciones.entities.Tutor;
 import ec.edu.uteq.presustentaciones.repositories.CronogramaRepository;
 import ec.edu.uteq.presustentaciones.repositories.JuradoRepository;
+import ec.edu.uteq.presustentaciones.repositories.PeriodoAcademicoRepository;
 import ec.edu.uteq.presustentaciones.repositories.SalaRepository;
 import ec.edu.uteq.presustentaciones.repositories.SolicitudRepository;
 import ec.edu.uteq.presustentaciones.repositories.TutorRepository;
@@ -33,6 +35,7 @@ public class CronogramaServiceImpl implements CronogramaService {
     private final SalaRepository salaRepository;
     private final JuradoRepository juradoRepository;
     private final TutorRepository tutorRepository;
+    private final PeriodoAcademicoRepository periodoAcademicoRepository;
     private final NotificacionService notificacionService;
 
     private static final LocalTime HORA_INICIO = LocalTime.of(8, 0);
@@ -44,11 +47,17 @@ public class CronogramaServiceImpl implements CronogramaService {
     @Transactional
     public Cronograma crearCronograma(Long solicitudId, Long salaId, LocalDate fecha, LocalTime hora) {
         validarPrerequisitosParaCronograma(solicitudId);
+        validarPeriodoAcademico(fecha);
 
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
         Sala sala = salaRepository.findById(salaId)
                 .orElseThrow(() -> new RuntimeException("Sala no encontrada"));
+
+        // Validar que la fecha no sea anterior a hoy
+        if (fecha.isBefore(LocalDate.now())) {
+            throw new RuntimeException("No se puede programar en una fecha anterior a la actual.");
+        }
 
         LocalDateTime inicio = LocalDateTime.of(fecha, hora);
         LocalDateTime fin = inicio.plusMinutes(DURACION);
@@ -85,9 +94,25 @@ public class CronogramaServiceImpl implements CronogramaService {
                 .filter(s -> Boolean.TRUE.equals(s.getDisponible())).toList();
         if (salas.isEmpty()) throw new RuntimeException("No hay salas disponibles.");
 
-        for (int diasAdelantar = 1; diasAdelantar <= 30; diasAdelantar++) {
-            LocalDate fecha = LocalDate.now().plusDays(diasAdelantar);
-            if (fecha.getDayOfWeek().getValue() >= 6) continue;
+        // Determinar rango del periodo activo
+        PeriodoAcademico periodoActivo = periodoAcademicoRepository.findByActivoTrue().orElse(null);
+        LocalDate fechaLimiteInicio = LocalDate.now().plusDays(1);
+        LocalDate fechaLimiteFin;
+        if (periodoActivo != null) {
+            if (periodoActivo.getFechaInicio().isAfter(LocalDate.now())) {
+                fechaLimiteInicio = periodoActivo.getFechaInicio();
+            }
+            fechaLimiteFin = periodoActivo.getFechaFin();
+        } else {
+            fechaLimiteFin = LocalDate.now().plusDays(30);
+        }
+
+        LocalDate fecha = fechaLimiteInicio;
+        while (!fecha.isAfter(fechaLimiteFin)) {
+            if (fecha.getDayOfWeek().getValue() >= 6) {
+                fecha = fecha.plusDays(1);
+                continue;
+            }
 
             List<LocalDateTime> franjas = franjasDisponibles(fecha, DURACION);
             for (LocalDateTime franja : franjas) {
@@ -105,9 +130,26 @@ public class CronogramaServiceImpl implements CronogramaService {
                     }
                 }
             }
+            fecha = fecha.plusDays(1);
         }
+
+        String msgPeriodo = periodoActivo != null
+                ? "dentro del periodo académico " + periodoActivo.getNombre() + " (" + periodoActivo.getFechaInicio() + " al " + periodoActivo.getFechaFin() + ")"
+                : "en los próximos 30 días";
         throw new RuntimeException(
-                "No se encontró disponibilidad en los próximos 30 días. Verifique las salas o el calendario.");
+                "No se encontró disponibilidad " + msgPeriodo + ". Verifique las salas o amplíe el periodo.");
+    }
+
+    private void validarPeriodoAcademico(LocalDate fecha) {
+        Optional<PeriodoAcademico> periodoOpt = periodoAcademicoRepository.findByActivoTrue();
+        if (periodoOpt.isPresent()) {
+            PeriodoAcademico periodo = periodoOpt.get();
+            if (fecha.isBefore(periodo.getFechaInicio()) || fecha.isAfter(periodo.getFechaFin())) {
+                throw new RuntimeException(
+                        "La fecha seleccionada está fuera del periodo académico activo '" + periodo.getNombre() +
+                        "' (" + periodo.getFechaInicio() + " al " + periodo.getFechaFin() + ").");
+            }
+        }
     }
 
     private void validarPrerequisitosParaCronograma(Long solicitudId) {

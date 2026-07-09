@@ -507,3 +507,33 @@ body.dark-mode .tutor-actual     { background: #0f2e1a !important; border-color:
 body.dark-mode .estado-global.completo  { background: #0f2e1a !important; border-color: #238636 !important; color: #3fb950 !important; }
 body.dark-mode .estado-global.pendiente { background: #1c1400 !important; border-color: #d29922 !important; color: #f0b429 !important; }
 body.dark-mode .form-card        { background: #161b22 !important; border-color: #30363d !important; }
+
+/* Alerta de tribunal ya asignado - modo edición */
+.alerta-edicion {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 1px solid #f0c674;
+    border-left: 4px solid #e67e22;
+    border-radius: 8px;
+    color: #856404;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.alerta-edicion i {
+    font-size: 1.25rem;
+    color: #e67e22;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+.alerta-edicion strong {
+    display: block;
+    margin-bottom: 2px;
+    color: #6c3a00;
+}
+.alerta-edicion span {
+    color: #7a5a1f;
+}

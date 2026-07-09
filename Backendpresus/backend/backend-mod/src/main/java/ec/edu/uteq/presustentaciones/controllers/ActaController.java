@@ -53,10 +53,11 @@ public class ActaController {
     public ResponseEntity<?> descargarPdf(@PathVariable Long actaId) {
         try {
             byte[] pdfBytes = actaService.obtenerPdfBytes(actaId);
+            String nombreArchivo = actaService.obtenerNombreArchivo(actaId);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_PDF)
                     .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"acta_" + actaId + ".pdf\"")
+                            "attachment; filename=\"" + nombreArchivo + "\"")
                     .body(pdfBytes);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "El archivo PDF no está disponible. Regenere el acta."));
@@ -68,10 +69,11 @@ public class ActaController {
     public ResponseEntity<?> verPdf(@PathVariable Long actaId) {
         try {
             byte[] pdfBytes = actaService.obtenerPdfBytes(actaId);
+            String nombreArchivo = actaService.obtenerNombreArchivo(actaId);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_PDF)
                     .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "inline; filename=\"acta_" + actaId + ".pdf\"")
+                            "inline; filename=\"" + nombreArchivo + "\"")
                     .body(pdfBytes);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "El archivo PDF no está disponible. Regenere el acta."));

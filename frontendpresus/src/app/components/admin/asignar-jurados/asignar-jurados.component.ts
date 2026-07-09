@@ -8,6 +8,7 @@ import { SolicitudService } from '../../../services/solicitud.service';
 import { NotificationService } from '../../../services/notification.service';
 import { TutoriaService } from '../../../services/tutoria.service';
 import { AuthService } from '../../../services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
     encapsulation: ViewEncapsulation.None,
@@ -204,14 +205,26 @@ export class AsignarJuradosComponent implements OnInit {
     }
 
     eliminarJurado(juradoId: number): void {
-        if (!confirm('¿Eliminar este jurado?')) return;
-        this.juradoService.eliminarJurado(juradoId).subscribe({
-            next: () => {
-                this.notification.success('Jurado eliminado.', '');
-                this.cargarJurados();
-                this.cargarSugerencias();
-            },
-            error: () => this.notification.error('No se pudo eliminar.', 'Error')
+        Swal.fire({
+            title: '¿Eliminar este jurado?',
+            text: 'Se quitará al docente del tribunal de esta solicitud.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.juradoService.eliminarJurado(juradoId).subscribe({
+                    next: () => {
+                        this.notification.success('Jurado eliminado correctamente.', '✓ Eliminado');
+                        this.cargarJurados();
+                        this.cargarSugerencias();
+                    },
+                    error: () => this.notification.error('No se pudo eliminar.', 'Error')
+                });
+            }
         });
     }
 

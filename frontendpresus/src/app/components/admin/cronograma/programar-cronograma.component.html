@@ -29,77 +29,115 @@
     <!-- ── Banners de validación previa ──────────────────────────────── -->
     <div class="banner-validacion banner-error" *ngIf="validacionTribunal === 'error'">
       <i class="bi bi-people-fill me-2"></i>
-      ⚠ {{ mensajeTribunal }}
+      {{ mensajeTribunal }}
     </div>
     <div class="banner-validacion banner-ok" *ngIf="validacionTribunal === 'ok'">
       <i class="bi bi-people-fill me-2"></i>
-      ✓ Tribunal completo (Presidente, Vocal 1 y Vocal 2 asignados).
+      Tribunal completo (Presidente, Vocal 1 y Vocal 2 asignados).
     </div>
 
     <div class="banner-validacion banner-error" *ngIf="validacionTutoria === 'error'">
       <i class="bi bi-journal-bookmark-fill me-2"></i>
-      ⚠ {{ mensajeTutoria }}
+      {{ mensajeTutoria }}
     </div>
     <div class="banner-validacion banner-ok" *ngIf="validacionTutoria === 'ok'">
       <i class="bi bi-journal-bookmark-fill me-2"></i>
-      ✓ Tutoría completada. El estudiante ha aprobado las 3 revisiones.
+      Tutoría completada. El estudiante ha aprobado las 3 revisiones.
     </div>
 
-    <!-- RF-04: Botón asignación automática -->
-    <div class="auto-assign-card">
-      <div class="aa-info">
-        <i class="bi bi-magic me-2" style="font-size:1.3rem;color:#003865"></i>
-        <div>
-          <strong>Asignación automática</strong>
-          <p class="aa-desc">El sistema buscará la primera franja disponible sin conflictos de sala, saltando fines de semana.</p>
-        </div>
+    <!-- ── Sección de programación ─────────────────────────────────── -->
+    <!-- Periodo activo info -->
+    <div class="periodo-info" *ngIf="periodoActivo">
+      <div class="periodo-icon"><i class="bi bi-calendar-range-fill"></i></div>
+      <div class="periodo-detalle">
+        <strong>Periodo activo: {{ periodoActivo.nombre }}</strong>
+        <span>({{ periodoActivo.tipo }}) — del {{ periodoActivo.fechaInicio }} al {{ periodoActivo.fechaFin }}</span>
       </div>
-      <button class="btn-auto" (click)="asignarAutomatico()" [disabled]="asignandoAuto || formularioBloqueado">
-        <i class="bi" [class.bi-lightning-charge-fill]="!asignandoAuto"
-           [class.bi-arrow-clockwise]="asignandoAuto" [class.spin]="asignandoAuto"></i>
-        {{ asignandoAuto ? 'Buscando...' : 'Asignar automáticamente' }}
-      </button>
+    </div>
+    <div class="periodo-info periodo-warning" *ngIf="!periodoActivo">
+      <div class="periodo-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="periodo-detalle">
+        <strong>No hay periodo académico activo.</strong>
+        <span>Se permitirá programar sin restricción de rango, pero se recomienda configurar uno.</span>
+      </div>
     </div>
 
-    <div class="divider"><span>o asignar manualmente</span></div>
+    <div class="programacion-grid">
 
-    <!-- Error de conflicto -->
-    <div class="alert-conflicto" *ngIf="errorConflicto">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i>
-      {{ errorConflicto }}
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-card">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Fecha</label>
-          <input type="date" formControlName="fecha" class="input-field"
-                 [attr.disabled]="formularioBloqueado ? '' : null">
+      <!-- Card: Asignación Automática -->
+      <div class="programacion-card auto-card">
+        <div class="card-icon-header">
+          <div class="icon-circle auto-icon">
+            <i class="bi bi-lightning-charge-fill"></i>
+          </div>
+          <div>
+            <h3 class="card-title">Asignación Automática</h3>
+            <p class="card-desc">El sistema buscará la primera franja disponible sin conflictos de sala, saltando fines de semana.</p>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Hora</label>
-          <input type="time" formControlName="hora" class="input-field"
-                 [attr.disabled]="formularioBloqueado ? '' : null">
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Sala</label>
-        <select formControlName="salaId" class="input-field"
-                [attr.disabled]="formularioBloqueado ? '' : null">
-          <option value="">Seleccionar sala...</option>
-          <option *ngFor="let s of salas" [value]="s.id">{{ s.nombre }} (Cap. {{ s.capacidad }})</option>
-        </select>
-      </div>
-      <div class="form-actions">
-        <button type="button" class="btn-cancelar" routerLink="/dashboard/admin/revisar-solicitudes">
-          <i class="bi bi-x-circle me-1"></i>Cancelar
-        </button>
-        <button type="submit" class="btn-guardar" [disabled]="form.invalid || enviando || formularioBloqueado">
-          <i class="bi" [class.bi-check-circle]="!enviando"
-             [class.bi-arrow-clockwise]="enviando" [class.spin]="enviando"></i>
-          {{ enviando ? 'Guardando...' : 'Programar manualmente' }}
+        <button class="btn-auto-premium" (click)="asignarAutomatico()" [disabled]="asignandoAuto || formularioBloqueado">
+          <i class="bi" [class.bi-lightning-charge-fill]="!asignandoAuto"
+             [class.bi-arrow-clockwise]="asignandoAuto" [class.spin]="asignandoAuto"></i>
+          {{ asignandoAuto ? 'Buscando disponibilidad...' : 'Asignar automáticamente' }}
         </button>
       </div>
-    </form>
+
+      <!-- Card: Asignación Manual -->
+      <div class="programacion-card manual-card">
+        <div class="card-icon-header">
+          <div class="icon-circle manual-icon">
+            <i class="bi bi-pencil-square"></i>
+          </div>
+          <div>
+            <h3 class="card-title">Asignación Manual</h3>
+            <p class="card-desc">Selecciona fecha, hora y sala manualmente para programar la presentación.</p>
+          </div>
+        </div>
+
+        <!-- Error de conflicto -->
+        <div class="alert-conflicto" *ngIf="errorConflicto">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          {{ errorConflicto }}
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="guardar()" class="form-manual">
+          <div class="form-row-grid">
+            <div class="form-group">
+              <label class="form-label"><i class="bi bi-calendar3 me-1"></i>Fecha</label>
+              <input type="date" formControlName="fecha" class="input-field"
+                     [min]="fechaMin" [max]="fechaMax || null"
+                     [attr.disabled]="formularioBloqueado ? '' : null">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><i class="bi bi-clock me-1"></i>Hora</label>
+              <input type="time" formControlName="hora" class="input-field"
+                     [attr.disabled]="formularioBloqueado ? '' : null">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="bi bi-building me-1"></i>Sala</label>
+            <select formControlName="salaId" class="input-field"
+                    [attr.disabled]="formularioBloqueado ? '' : null">
+              <option value="">Seleccionar sala...</option>
+              <option *ngFor="let s of salas" [value]="s.id">{{ s.nombre }} (Cap. {{ s.capacidad }})</option>
+            </select>
+            <small class="salas-hint" *ngIf="salas.length === 0">
+              <i class="bi bi-exclamation-triangle"></i> No hay salas disponibles en el sistema.
+            </small>
+          </div>
+          <div class="form-actions-manual">
+            <button type="button" class="btn-cancelar" routerLink="/dashboard/admin/revisar-solicitudes">
+              <i class="bi bi-x-circle me-1"></i>Cancelar
+            </button>
+            <button type="submit" class="btn-guardar-manual" [disabled]="form.invalid || enviando || formularioBloqueado">
+              <i class="bi" [class.bi-check-circle-fill]="!enviando"
+                 [class.bi-arrow-clockwise]="enviando" [class.spin]="enviando"></i>
+              {{ enviando ? 'Guardando...' : 'Programar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
   </div>
 </div>

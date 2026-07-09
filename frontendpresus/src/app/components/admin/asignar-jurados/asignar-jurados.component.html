@@ -13,6 +13,15 @@
   </div>
 
   <!-- ── Banner estado tutoría ─────────────────────────────────────────── -->
+  <!-- Aviso: tribunal ya asignado (modo edición) -->
+  <div class="banner-edicion" *ngIf="!cargando && jurados.length > 0 && solicitud && (solicitud.estado === 'EVALUACION' || solicitud.estado === 'CALIFICADA')">
+    <i class="bi bi-info-circle-fill me-2"></i>
+    <div>
+      <strong>Tribunal ya asignado.</strong>
+      Estás en modo edición. Puedes modificar los miembros del tribunal si es necesario (cambio de jurado, indisponibilidad, etc.).
+    </div>
+  </div>
+
   <!-- Caso 1: sin tutor asignado (array vacío o 404) -->
   <div class="banner-tutoria banner-tutoria-error"
        *ngIf="tutoriaCompletada === false && !tutoriaTieneAsignacion">

@@ -7,6 +7,7 @@ import ec.edu.uteq.presustentaciones.enums.EstadoSolicitud;
 import ec.edu.uteq.presustentaciones.repositories.DocenteRepository;
 import ec.edu.uteq.presustentaciones.repositories.SolicitudRepository;
 import ec.edu.uteq.presustentaciones.repositories.TutorRepository;
+import ec.edu.uteq.presustentaciones.repositories.TutoriaFaseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class TutorServiceImpl implements TutorService {
     private final TutorRepository tutorRepository;
     private final SolicitudRepository solicitudRepository;
     private final DocenteRepository docenteRepository;
+    private final TutoriaFaseRepository tutoriaFaseRepository;
     private final NotificacionService notificacionService;
 
     @Override
@@ -33,7 +35,17 @@ public class TutorServiceImpl implements TutorService {
         Docente docente = docenteRepository.findById(docenteId)
                 .orElseThrow(() -> new RuntimeException("Docente no encontrado: " + docenteId));
 
-        tutorRepository.findBySolicitudId(solicitudId).ifPresent(t -> tutorRepository.delete(t));
+        tutorRepository.findBySolicitudId(solicitudId).ifPresent(t -> {
+            // Validar: no permitir cambio si ya tiene fases de tutoría
+            long fasesRegistradas = tutoriaFaseRepository.countByTutorId(t.getId());
+            if (fasesRegistradas > 0) {
+                long fasesAprobadas = tutoriaFaseRepository.countByTutorIdAndEstado(t.getId(), "APROBADA");
+                throw new RuntimeException(
+                        "No se puede cambiar de tutor. La tutoría ya tiene fases registradas (" +
+                        fasesAprobadas + " aprobada(s)). El tutor actual debe continuar el proceso.");
+            }
+            tutorRepository.delete(t);
+        });
 
         Tutor tutor = Tutor.builder()
                 .solicitud(solicitud)

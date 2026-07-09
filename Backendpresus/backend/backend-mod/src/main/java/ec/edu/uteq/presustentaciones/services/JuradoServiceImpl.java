@@ -1,14 +1,17 @@
 package ec.edu.uteq.presustentaciones.services;
 
 import ec.edu.uteq.presustentaciones.entities.Docente;
+import ec.edu.uteq.presustentaciones.entities.EvaluacionJurado;
 import ec.edu.uteq.presustentaciones.entities.Jurado;
 import ec.edu.uteq.presustentaciones.entities.Solicitud;
 import ec.edu.uteq.presustentaciones.entities.Tutor;
 import ec.edu.uteq.presustentaciones.enums.EstadoSolicitud;
 import ec.edu.uteq.presustentaciones.repositories.DocenteRepository;
+import ec.edu.uteq.presustentaciones.repositories.EvaluacionJuradoRepository;
 import ec.edu.uteq.presustentaciones.repositories.JuradoRepository;
 import ec.edu.uteq.presustentaciones.repositories.SolicitudRepository;
 import ec.edu.uteq.presustentaciones.repositories.TutorRepository;
+import ec.edu.uteq.presustentaciones.repositories.TutoriaFaseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,8 @@ public class JuradoServiceImpl implements JuradoService {
     private final TutorRepository tutorRepository;
     private final DocenteRepository docenteRepository;
     private final SolicitudRepository solicitudRepository;
+    private final TutoriaFaseRepository tutoriaFaseRepository;
+    private final EvaluacionJuradoRepository evaluacionJuradoRepository;
     private final NotificacionService notificacionService;
     private final EmailService emailService;
 
@@ -97,6 +102,19 @@ public class JuradoServiceImpl implements JuradoService {
     public void eliminarJurado(Long juradoId) {
         Jurado jurado = juradoRepository.findById(juradoId)
                 .orElseThrow(() -> new RuntimeException("Jurado no encontrado: " + juradoId));
+
+        // Validar: no permitir eliminar si ya tiene evaluación registrada
+        Long solicitudId = jurado.getSolicitud().getId();
+        if (evaluacionJuradoRepository.existsBySolicitudIdAndJuradoId(solicitudId, juradoId)) {
+            throw new RuntimeException("No se puede eliminar este jurado. Ya tiene una evaluacion registrada para esta solicitud.");
+        }
+
+        // Validar: no permitir eliminar si hay evaluaciones de otros jurados en la misma solicitud
+        List<EvaluacionJurado> evalsSolicitud = evaluacionJuradoRepository.findBySolicitudId(solicitudId);
+        if (!evalsSolicitud.isEmpty()) {
+            throw new RuntimeException("No se puede modificar el tribunal. Ya existen evaluaciones registradas por los jurados.");
+        }
+
         Docente docente = jurado.getDocente();
         int nuevaCarga = Math.max(0, docente.getCargaHorariaSemanal() - 1);
         docente.setCargaHorariaSemanal(nuevaCarga);
@@ -120,6 +138,17 @@ public class JuradoServiceImpl implements JuradoService {
         // Si ya había un tutor diferente, notificarle que fue reemplazado
         Docente tutorAnterior = tutor.getDocente();
         boolean esReemplazo = tutorAnterior != null && !tutorAnterior.getId().equals(docenteId);
+
+        // Validar: no permitir cambio de tutor si ya tiene fases de tutoría iniciadas
+        if (esReemplazo && tutor.getId() != null) {
+            long fasesConProgreso = tutoriaFaseRepository.countByTutorId(tutor.getId());
+            if (fasesConProgreso > 0) {
+                long fasesAprobadas = tutoriaFaseRepository.countByTutorIdAndEstado(tutor.getId(), "APROBADA");
+                throw new RuntimeException(
+                        "No se puede cambiar de tutor. La tutoría ya tiene fases registradas (" +
+                        fasesAprobadas + " aprobada(s)). El tutor actual debe continuar el proceso.");
+            }
+        }
 
         tutor.setDocente(docente);
         tutor.setEstado("ACTIVO");

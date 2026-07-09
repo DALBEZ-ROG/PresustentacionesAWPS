@@ -22,6 +22,7 @@ import { VerObservacionesComponent } from './components/solicitudes/ver-observac
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { MisTutoriasComponent } from './components/tutorias/mis-tutorias/mis-tutorias.component';
 import { DetalleTutoriaComponent } from './components/tutorias/detalle-tutoria/detalle-tutoria.component';
+import { GestionarPeriodosComponent } from './components/admin/periodos/gestionar-periodos.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -47,6 +48,8 @@ export const routes: Routes = [
             { path: 'admin/evaluar/:id',              component: EvaluarSolicitudComponent,     canActivate: [authGuard] },
             // ★ Nueva ruta: vista de solo lectura de la rúbrica para el coordinador
             { path: 'admin/ver-rubrica/:id',          component: VerRubricaTribunalComponent,   canActivate: [authGuard] },
+            // ★ Gestión de periodos académicos (coordinador)
+            { path: 'admin/periodos',                 component: GestionarPeriodosComponent,    canActivate: [authGuard] },
             // ── Jurado / Docente ────────────────────────────────────────────
             { path: 'jurado/mis-asignaciones',        component: MisAsignacionesComponent,      canActivate: [authGuard] },
             { path: 'jurado/evaluar-rubrica/:id',     component: EvaluarRubricaComponent,       canActivate: [authGuard] },

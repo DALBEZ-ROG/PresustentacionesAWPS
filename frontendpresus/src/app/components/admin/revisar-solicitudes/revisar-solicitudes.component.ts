@@ -5,6 +5,9 @@ import { Router, RouterModule } from '@angular/router';
 import { ReporteService } from '../../../services/reporte.service';
 import { SolicitudService } from '../../../services/solicitud.service';
 import { NotificationService } from '../../../services/notification.service';
+import { JuryEvaluationService } from '../../../services/jury-evaluation.service';
+import { EvaluacionService } from '../../../services/evaluacion.service';
+import Swal from 'sweetalert2';
 
 @Component({
     encapsulation: ViewEncapsulation.None,
@@ -36,6 +39,8 @@ export class RevisarSolicitudesComponent implements OnInit {
         private notification: NotificationService,
         private router: Router,
         private reporteService: ReporteService,
+        private juryEvalService: JuryEvaluationService,
+        private evaluacionService: EvaluacionService,
         private cdr: ChangeDetectorRef
     ) {}
 
@@ -214,5 +219,54 @@ export class RevisarSolicitudesComponent implements OnInit {
             },
             error: () => this.notification.error('No se pudo generar el reporte.', 'Error')
         });
+    }
+
+    verObservacionesCompletas(s: any): void {
+        const solicitudId = s.id;
+        let obsHtml = '';
+
+        // Observacion del coordinador (de la solicitud misma)
+        if (s.observaciones) {
+            obsHtml += `<div style="text-align:left;margin-bottom:12px"><strong style="color:#003865">Coordinador:</strong><p style="margin:4px 0;padding:8px 12px;background:#f0f6ff;border-radius:8px;border-left:3px solid #003865;font-size:0.9rem">${s.observaciones}</p></div>`;
+        }
+
+        // Cargar observaciones de jurados
+        this.juryEvalService.obtenerTribunal(solicitudId).subscribe({
+            next: (evals) => {
+                evals.forEach((ev: any) => {
+                    if (ev.observaciones) {
+                        const rol = this.formatRolLabel(ev.rolJurado);
+                        obsHtml += `<div style="text-align:left;margin-bottom:10px"><strong style="color:#0369a1">${rol} — ${ev.nombreJurado}:</strong><p style="margin:4px 0;padding:8px 12px;background:#f0fdf4;border-radius:8px;border-left:3px solid #16a34a;font-size:0.9rem">${ev.observaciones}</p></div>`;
+                    }
+                });
+
+                // Cargar observaciones de la evaluacion del coordinador
+                this.evaluacionService.porSolicitud(solicitudId).subscribe({
+                    next: (evalCoord: any) => {
+                        if (evalCoord?.observaciones) {
+                            obsHtml += `<div style="text-align:left;margin-bottom:10px"><strong style="color:#003865">Nota del Coordinador:</strong><p style="margin:4px 0;padding:8px 12px;background:#f0f6ff;border-radius:8px;border-left:3px solid #003865;font-size:0.9rem">${evalCoord.observaciones}</p></div>`;
+                        }
+                        this.mostrarModalObservaciones(s.tituloTema, obsHtml);
+                    },
+                    error: () => this.mostrarModalObservaciones(s.tituloTema, obsHtml)
+                });
+            },
+            error: () => this.mostrarModalObservaciones(s.tituloTema, obsHtml || '<p style="color:#999">No hay observaciones registradas.</p>')
+        });
+    }
+
+    private mostrarModalObservaciones(titulo: string, html: string): void {
+        Swal.fire({
+            title: 'Observaciones',
+            html: `<div style="max-height:400px;overflow-y:auto"><p style="font-size:0.82rem;color:#666;margin-bottom:12px">${titulo}</p>${html || '<p style="color:#999">No hay observaciones registradas.</p>'}</div>`,
+            width: 600,
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: '#003865'
+        });
+    }
+
+    private formatRolLabel(rol: string): string {
+        const map: Record<string,string> = { PRESIDENTE:'Presidente', VOCAL_1:'Vocal 1', VOCAL_2:'Vocal 2', TUTOR:'Tutor' };
+        return map[rol] || rol;
     }
 }

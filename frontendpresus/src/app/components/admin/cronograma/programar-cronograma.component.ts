@@ -10,6 +10,7 @@ import { NotificationService } from '../../../services/notification.service';
 import { JuradoService } from '../../../services/jurado.service';
 import { TutoriaService } from '../../../services/tutoria.service';
 import { AuthService } from '../../../services/auth.service';
+import { PeriodoService } from '../../../services/periodo.service';
 
 @Component({
     encapsulation: ViewEncapsulation.None,
@@ -34,6 +35,10 @@ export class ProgramarCronogramaComponent implements OnInit {
     mensajeTribunal = '';
     mensajeTutoria  = '';
 
+    periodoActivo: any = null;
+    fechaMin = '';
+    fechaMax = '';
+
     constructor(
         private fb: FormBuilder,
         private route: ActivatedRoute,
@@ -45,6 +50,7 @@ export class ProgramarCronogramaComponent implements OnInit {
         private juradoService: JuradoService,
         private tutoriaService: TutoriaService,
         private authService: AuthService,
+        private periodoService: PeriodoService,
         private cdr: ChangeDetectorRef
     ) {}
 
@@ -68,6 +74,29 @@ export class ProgramarCronogramaComponent implements OnInit {
         this.cronogramaService.porSolicitud(this.solicitudId).subscribe({
             next: (c) => { this.cronogramaExistente = c; this.cdr.markForCheck(); },
             error: () => { this.cronogramaExistente = null; this.cdr.markForCheck(); }
+        });
+
+        // Cargar periodo activo para definir rango de fechas
+        this.periodoService.obtenerActivo().subscribe({
+            next: (p) => {
+                if (p && p.id) {
+                    this.periodoActivo = p;
+                    const hoy = new Date().toISOString().split('T')[0];
+                    this.fechaMin = p.fechaInicio > hoy ? p.fechaInicio : hoy;
+                    this.fechaMax = p.fechaFin;
+                } else {
+                    this.periodoActivo = null;
+                    this.fechaMin = new Date().toISOString().split('T')[0];
+                    this.fechaMax = '';
+                }
+                this.cdr.markForCheck();
+            },
+            error: () => {
+                this.periodoActivo = null;
+                this.fechaMin = new Date().toISOString().split('T')[0];
+                this.fechaMax = '';
+                this.cdr.markForCheck();
+            }
         });
 
         forkJoin({

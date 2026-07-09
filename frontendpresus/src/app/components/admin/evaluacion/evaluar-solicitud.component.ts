@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -52,7 +52,8 @@ export class EvaluarSolicitudComponent implements OnInit {
     private juradoService: JuradoService,
     private actaService: ActaService,
     private juryEvalService: JuryEvaluationService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -66,13 +67,21 @@ export class EvaluarSolicitudComponent implements OnInit {
   }
 
   cargarDatos(): void {
-    this.rubricaService.listar().subscribe(r => this.rubricas = r);
-    this.solicitudService.obtenerPorId(this.solicitudId).subscribe(s => this.solicitud = s);
-    this.juradoService.listarPorSolicitud(this.solicitudId).subscribe({ next: j => this.jurados = j, error: () => {} });
-    this.juradoService.obtenerTutor(this.solicitudId).subscribe({ next: t => this.tutor = t, error: () => {} });
-    this.evalService.porSolicitud(this.solicitudId).subscribe({ next: e => this.evaluacionExistente = e, error: () => {} });
-    this.actaService.porSolicitud(this.solicitudId).subscribe({ next: a => this.acta = a, error: () => {} });
-    this.cargarNotaTribunal();
+    this.rubricaService.listar().subscribe(r => { this.rubricas = r; this.cdr.detectChanges(); });
+    this.solicitudService.obtenerPorId(this.solicitudId).subscribe(s => { this.solicitud = s; this.cdr.detectChanges(); });
+    this.juradoService.obtenerTutor(this.solicitudId).subscribe({ next: t => { this.tutor = t; this.cdr.detectChanges(); }, error: () => {} });
+    this.evalService.porSolicitud(this.solicitudId).subscribe({ next: e => { this.evaluacionExistente = e; this.cdr.detectChanges(); }, error: () => {} });
+    this.actaService.porSolicitud(this.solicitudId).subscribe({ next: a => { this.acta = a; this.cdr.detectChanges(); }, error: () => {} });
+
+    // Cargar jurados primero, luego las notas del tribunal
+    this.juradoService.listarPorSolicitud(this.solicitudId).subscribe({
+      next: j => {
+        this.jurados = j;
+        this.cdr.detectChanges();
+        this.cargarNotaTribunal();
+      },
+      error: () => { this.jurados = []; this.cdr.detectChanges(); this.cargarNotaTribunal(); }
+    });
   }
 
   cargarNotaTribunal(): void {
@@ -87,8 +96,9 @@ export class EvaluarSolicitudComponent implements OnInit {
           this.notaTribunalPromedio = null;
           this.tribunalCompleto = false;
         }
+        this.cdr.detectChanges();
       },
-      error: () => {}
+      error: () => { this.cdr.detectChanges(); }
     });
   }
 
@@ -96,8 +106,14 @@ export class EvaluarSolicitudComponent implements OnInit {
     return this.evaluacionesJurado.find(e => e.rolJurado === rol);
   }
 
-  get notaInstructor(): number { return +this.form.get('notaInstructor')?.value || 0; }
-  get notaJurado(): number     { return this.notaTribunalPromedio ?? 0; }
+  get notaInstructor(): number {
+    if (this.evaluacionExistente?.notaInstructor) return this.evaluacionExistente.notaInstructor;
+    return +this.form.get('notaInstructor')?.value || 0;
+  }
+  get notaJurado(): number {
+    if (this.evaluacionExistente?.notaJurado) return this.evaluacionExistente.notaJurado;
+    return this.notaTribunalPromedio ?? 0;
+  }
 
   get notaFinalPreview(): number {
     return Math.round(((this.notaInstructor * 60 / 100)
@@ -105,7 +121,8 @@ export class EvaluarSolicitudComponent implements OnInit {
   }
 
   get resultadoPreview(): string {
-    if (!this.form.get('notaInstructor')?.value) return '—';
+    if (this.evaluacionExistente) return this.notaFinalPreview >= 7 ? 'APROBADO' : 'REPROBADO';
+    if (!this.form.get('notaInstructor')?.value) return '';
     return this.notaFinalPreview >= 7 ? 'APROBADO' : 'REPROBADO';
   }
 
@@ -208,7 +225,11 @@ export class EvaluarSolicitudComponent implements OnInit {
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = `acta_solicitud_${this.solicitudId}.pdf`; a.click();
+        const nombre = this.solicitud?.estudiante?.usuario?.nombre || '';
+        const apellido = this.solicitud?.estudiante?.usuario?.apellido || '';
+        const carrera = this.solicitud?.estudiante?.carrera || '';
+        const filename = `Acta_PreSustentacion_${nombre}_${apellido}_${carrera}.pdf`.replace(/ /g, '_');
+        a.href = url; a.download = filename; a.click();
         URL.revokeObjectURL(url);
       },
       error: () => this.notification.error('No se pudo descargar el PDF.', 'Error')
