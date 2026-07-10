@@ -1,5 +1,5 @@
 import { Component, ViewEncapsulation, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { RubricaEvaluacionService, ObservacionesSolicitudDTO } from '../../../services/rubrica-evaluacion.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -22,6 +22,7 @@ export class VerObservacionesComponent implements OnInit {
     constructor(
         private route: ActivatedRoute,
         private router: Router,
+        private location: Location,
         private rubricaService: RubricaEvaluacionService,
         private notification: NotificationService,
         private cdr: ChangeDetectorRef
@@ -137,7 +138,7 @@ export class VerObservacionesComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/dashboard/solicitudes/mis-tramites']);
+        this.location.back();
     }
 
     formatearRol(rol: string): string {

@@ -137,4 +137,9 @@ export class ListarSolicitudesComponent implements OnInit, OnDestroy {
         const estadosConObservaciones = ['TUTORIA', 'EVALUACION', 'CALIFICADA', 'COMPLETADA'];
         return estadosConObservaciones.includes(estado);
     }
+
+    formatModalidad(modalidad: string): string {
+        if (!modalidad) return '-';
+        return modalidad.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    }
 }

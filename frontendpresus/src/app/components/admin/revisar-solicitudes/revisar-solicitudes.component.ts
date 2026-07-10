@@ -272,6 +272,11 @@ export class RevisarSolicitudesComponent implements OnInit {
         return map[rol] || rol;
     }
 
+    formatModalidad(modalidad: string): string {
+        if (!modalidad) return '-';
+        return modalidad.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    }
+
     descargarActaSolicitud(solicitudId: number): void {
         this.actaService.porSolicitud(solicitudId).subscribe({
             next: (acta: any) => {

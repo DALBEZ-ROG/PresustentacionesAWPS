@@ -71,17 +71,18 @@
                     </div>
                 </td>
                 <td class="titulo-cell" [title]="s.tituloTema">{{ s.tituloTema }}</td>
-                <td><span class="modalidad-tag">{{ s.modalidad }}</span></td>
+                <td><span class="modalidad-tag">{{ formatModalidad(s.modalidad) }}</span></td>
                 <td>{{ s.fechaRegistro | date:'dd/MM/yy' }}</td>
                 <td><span class="badge" [ngClass]="getBadge(s.estado)">{{ s.estado }}</span></td>
                 <td>
                     <div class="obs-cell">
-                        <ng-container *ngIf="s.estado==='CALIFICADA'">
-                            <button class="btn-accion btn-programar" (click)="verObservacionesCompletas(s)">
+                        <ng-container *ngIf="s.estado==='CALIFICADA' || s.estado==='COMPLETADA'">
+                            <button class="btn-accion btn-programar"
+                                    [routerLink]="['/dashboard/solicitudes/ver-observaciones', s.id]">
                                 <i class="bi bi-chat-left-text"></i> Observaciones
                             </button>
                         </ng-container>
-                        <ng-container *ngIf="s.estado!=='CALIFICADA' && s.observaciones">
+                        <ng-container *ngIf="s.estado!=='CALIFICADA' && s.estado!=='COMPLETADA' && s.observaciones">
                             <span class="obs-text">{{ s.observaciones | slice:0:30 }}{{ s.observaciones.length > 30 ? '... ' : ' ' }}<button class="btn-ver-mas" (click)="verObservaciones(s.tituloTema, s.observaciones)">Ver más</button></span>
                         </ng-container>
                     </div>
@@ -163,6 +164,23 @@
 
                         <!-- CALIFICADA → PDF, Tribunal (lectura), Acta (descarga directa) -->
                         <ng-container *ngIf="s.estado==='CALIFICADA'">
+                            <button class="btn-accion btn-ver-pdf"
+                                    [routerLink]="['/dashboard/docente/anteproyecto', s.id]">
+                                <i class="bi bi-file-earmark-pdf"></i> PDF
+                            </button>
+                            <button class="btn-accion btn-tribunal"
+                                    [routerLink]="['/dashboard/admin/ver-rubrica', s.id]"
+                                    title="Ver notas del tribunal">
+                                <i class="bi bi-people-fill"></i> Tribunal
+                            </button>
+                            <button class="btn-accion btn-evaluar"
+                                    (click)="descargarActaSolicitud(s.id)">
+                                <i class="bi bi-file-earmark-check"></i> Acta
+                            </button>
+                        </ng-container>
+
+                        <!-- COMPLETADA → PDF, Tribunal (lectura), Acta (descarga directa) -->
+                        <ng-container *ngIf="s.estado==='COMPLETADA'">
                             <button class="btn-accion btn-ver-pdf"
                                     [routerLink]="['/dashboard/docente/anteproyecto', s.id]">
                                 <i class="bi bi-file-earmark-pdf"></i> PDF
